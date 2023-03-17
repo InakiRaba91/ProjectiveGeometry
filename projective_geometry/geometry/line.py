@@ -133,20 +133,21 @@ class Line:
     def __repr__(self):
         return f"Line(a={self.a}, b={self.b}, c={self.c})"
 
-    def contains_pt(self, pt: Point, tol: float = 1e-6) -> bool:
-        """Determines whether a point belongs to a line or not
-
-        The points that belong to the line satisfy the general equation
-        ax + by +c =0
+    def scale(self, pt: Point) -> Line:
+        """Provides the 2D line after applying a scaling of the 2D space with
+        the scaling given in each coordinate of point
+        The original line is given by equation ax+by+c=0, so a point in homogenous
+        coordinates satisfies it. The scaled point (x' y') = (x*pt.x, y*pt.y) should
+        then satisfy:
+        (a/pt.x)x'+(b/pt.y)y'+c=0
 
         Args:
-            pt: Point to check whether or not it belongs to the line
-            tol: float error tolerance for considering a point belongs to the line
+            pt: Point defining the scaling of each axis in the 2D space
 
         Returns:
-            boolean indicating if the point belongs to the line
+            LineSegment resulting from scaling the 2D space
         """
-        return np.abs(np.dot(self.to_array(), pt.to_homogeneous())) <= tol
+        return Line(a=self._a / pt.x, b=self._b / pt.y, c=self._c)
 
     def intersection_line(self, other: Line, tol: float = 1e-6) -> Optional[Point]:
         """Find the point of intersection between two lines
@@ -165,6 +166,84 @@ class Line:
             return Point(x=x, y=y)
         else:
             return None
+
+    def rotate(self, angle: float) -> Line:
+        """Rotates a line by the degrees given in angle counter clock-wise
+        The line intersects with the axes at (0, -c/a) and (-c/b, 0), whose
+        normal vector (pointing to the half-plane given by the greater
+        inequality) is thus:
+        [   0  ]   [-(c/b)]
+        [-(c/a)] x [   0  ]
+        [   1  ]   [   1  ]
+        Rotating the line is equivalent to rotating these two points,
+        which turns them into:
+        (-c/a, 0) => (-(c/a)*cos(angle),  -(c/a)*sin(angle))
+        (0, -c/b) => ( (c/b)*sin(angle), -(c/b)*cos(angle))
+        The new line is then given by the cross product of these two points in
+        homogeneous coordinates (the order is relevant, so we don't switch half planes):
+        [-(c/a)*cos(angle)]   [ (c/b)*sin(angle)]   [-(c/a)*sin(angle)+(c/b)*cos(angle)]
+        [-(c/a)*sin(angle)] x [-(c/b)*cos(angle)] = [ (c/b)*sin(angle)+(c/a)*cos(angle)]
+        [       1         ]   [       1         ]   [c²/(a*b)*(cos²(angle)+sin²(angle))]
+        Thus:
+        -> a_rot =-(c/a)*sin(angle)+(c/b)*cos(angle)
+        -> b_rot = (c/b)*sin(angle)+(c/a)*cos(angle)
+        -> c_rot = c²/(a*b)
+        and if we scale everything by (a*b)/c:
+        -> a_rot = a*cos(angle)-b*sin(angle)
+        -> b_rot = a*sin(angle)+b*cos(angle)
+        -> c_rot = c
+        Args:
+            angle: float indicating rotation w.r.t. x-axis counter clock-wise in degrees
+        Returns:
+            rotated Line
+        """
+        rads = np.deg2rad(angle)
+        a_rot = self._a * np.cos(rads) - self._b * np.sin(rads)
+        b_rot = self._a * np.sin(rads) + self._b * np.cos(rads)
+        return Line(a=a_rot, b=b_rot, c=self._c)
+
+    def rigid_transform(self, pt_shift: Point, angle: float) -> Line:
+        """Applies a rigid transform that consists of:
+        1. Shift point in the direction of the vector from the origin of
+        coordinates to the given point
+        2. Rotate line by the degrees given in angle counter clock-wise
+        Args:
+            pt_shift: Point determining the shift of the line
+            angle: float indicating rotation w.r.t. x-axis counter clock-wise in degrees
+        Returns:
+            Line after applying rigid transform
+        """
+        # addition will verify both point and line are in the same domain
+        line_shift = self + pt_shift
+        return line_shift.rotate(angle=angle)
+
+    def is_in_greater_half_plane(self, pt: Point) -> bool:
+        """Checks if a point belongs to the half-plane defined by the inequality ax+by+c>0
+        The following two lines are equivalent ax+by+c=0, -ax-by-c=0.
+        However, a line divides the 2D space in two half-planes, so we will
+        use the convention that by default, the half plane a line refers to is
+        defined by the inequality ax+by+c>0. This will become handy when defining an
+        arc as the intersection between a half plane and an ellipse
+        The line intersects with the axes at (0, -c/a) and (-c/b, 0).
+        Our convention states that the half plane is in the direction given
+        by thenormal vector:
+        [  0 ]   [-c/b]
+        [-c/a] x [  0 ]
+        [  1 ]   [  1 ]
+        Thus, the aformentioned equivalent
+        lines define two opposite half planes
+        1) ax+by+c>0
+        2) -ax-by-c>0 => ax+by+c<0
+        Another way to interpret this is using normal vectors. A line ax+by+c=0 has
+        two perpendicular normal vectors (c/b, c/a) and (-c/b, -c/a). We will use
+        the convention that the line parametrizes the half plane in the direction
+        of the first one. So negating the line would have the opposite normal vector.
+        Args:
+            pt: Point to check whether it belongs to the half plane or not
+        Returns:
+            boolean indicating the point belongs to half plane defined by greater inequality
+        """
+        return self.to_array().dot(pt.to_homogeneous()) > 0
 
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, thickness: int = 3, tol: float = 1e-6):
         """Draws the line within the given image in-place

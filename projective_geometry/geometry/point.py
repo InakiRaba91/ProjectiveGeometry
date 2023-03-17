@@ -144,6 +144,36 @@ class Point:
     def __repr__(self):
         return f"Point(x={self.x}, y={self.y})"
 
+    def scale(self, pt: Point) -> Point:
+        """Provides the point after applying a scaling of the 2D space with
+        the scaling given in each coordinate of point
+        The 2D x-y space is scaled by
+        x' = x * pt.x
+        y' = y * pt.y
+
+        Args:
+            pt: Point defining the scaling of each axis in the 2D space
+
+        Returns:
+            LineSegment resulting from scaling the 2D space
+        """
+        return Point(x=self.x * pt.x, y=self.y * pt.y)
+
+    def rotate(self, angle: float) -> Point:
+        """Rotates a point by the degrees given in angle counter clock-wise
+        A point is rotated by applying
+        x' = x * cos(angle) - y * sin(angle)
+        y' = x * sin(angle) + y * cos(angle)
+        Args:
+            angle: float indicating rotation w.r.t. x-axis counter clock-wise in degrees
+        Returns:
+            rotated Point
+        """
+        rads = np.deg2rad(angle)
+        x = self.x * float(np.cos(rads)) - self.y * float(np.sin(rads))
+        y = self.x * float(np.sin(rads)) + self.y * float(np.cos(rads))
+        return Point(x=x, y=y)
+
     @classmethod
     def from_homogeneous(cls, pt_homogeneous: np.ndarray) -> "Point":
         """Converts from numpy array in homogenous coordinates to 2D Point
