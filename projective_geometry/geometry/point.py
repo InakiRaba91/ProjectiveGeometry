@@ -30,6 +30,13 @@ class Point:
         """y-coordinate"""
         return self._y
 
+    def to_array(self) -> np.ndarray:
+        """Converts to numpy array
+        Returns:
+            ndarray  [x, y]
+        """
+        return np.array([self.x, self.y])
+
     def to_homogeneous(self) -> np.ndarray:
         """Converts to numpy array in homogenous coordinates
 
