@@ -1,0 +1,6 @@
+[flake8]
+# flake and black fight over E203: https://github.com/psf/black/issues/315
+# E203: https://github.com/psf/black/issues/315
+ignore = E501,E231, F401, W503, E203
+exclude = .git,__pycache__,docs/source/conf.py,.pytest_cache,build,dist
+max-complexity = 20

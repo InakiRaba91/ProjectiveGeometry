@@ -1,13 +1,16 @@
 [tool.poetry]
-name = "projectivegeometry"
+name = "projective_geometry"
 version = "0.1.0"
 description = "Educational package to learn how different geometric features are projected under homography transforms"
 authors = ["Inaki Rabanillo <lanza241>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+numpy = "^1.24.2"
+opencv-python = "^4.7.0"
 
 [tool.poetry.dev-dependencies]
+mypy = "^0.910"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
