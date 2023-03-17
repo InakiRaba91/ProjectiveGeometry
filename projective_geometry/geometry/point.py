@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Tuple
+from typing import Any, Tuple, Union
 
 import cv2
 import numpy as np
@@ -37,6 +37,109 @@ class Point:
             ndarray in homogeneous coordinates [x, y, 1]
         """
         return np.array([self.x, self.y, 1.0])
+
+    def __add__(self, other: Union[Point, float]) -> Point:  # type: ignore
+        """Adds two points
+
+        Args:
+            other: Point/float to add
+
+        Returns:
+            Point resulting from the sum
+        """
+        assert isinstance(other, (float, Point))
+        if isinstance(other, Point):
+            return Point(x=self.x + other.x, y=self.y + other.y)
+        else:
+            return Point(x=self.x + other, y=self.y + other)
+
+    def __sub__(self, other: Union[Point, float]) -> Point:
+        """Substracts a point from another
+
+        Args:
+            other: Point/float to substract
+
+        Returns:
+            Point resulting from the substraction
+        """
+        assert isinstance(other, (float, Point))
+        if isinstance(other, Point):
+            return Point(x=self.x - other.x, y=self.y - other.y)
+        else:
+            return Point(x=self.x - other, y=self.y - other)
+
+    def __mul__(self, other: Union[float, Point]) -> Union[float, Point]:  # type: ignore
+        """Multiplies two points or a point by a scalar
+
+        Args:
+            other: Point/float to multiply by
+
+        Returns:
+            result of multiplication:
+              float resulting from the dot product of two points or
+              Point resulting from the multiplication by a scalar
+        """
+        if isinstance(other, Point):
+            return self.x * other.x + self.y * other.y
+        # Mypy does not recognize the if clause, so it doesn't realize
+        # other can only be an int/float at this point and raises an error
+        # because the operation can't be performed if other was a Point
+        assert isinstance(other, (float, int))
+        return Point(x=self.x * other, y=self.y * other)
+
+    def __rmul__(self, other: Union[float, Point]) -> Union[float, Point]:  # type: ignore
+        """Applies left multiplication for scalars (in case we do 2*pt instead of pt*2)
+
+        Args:
+            other: Point/float to multiply by
+
+        Returns:
+            result of multiplication:
+              float resulting from the dot product of two points or
+              Point resulting from the multiplication by a scalar
+        """
+        return self * other
+
+    def __truediv__(self, value: float) -> Union[float, Point]:
+        """Divides a point by a scalar (division between points is not defined)
+
+        Args:
+            other: float scalar to multiply by
+
+        Returns:
+             Point resulting from the division by a scalar
+        """
+        return self * (1 / value)
+
+    def __neg__(self) -> Point:
+        """Flips a point 180º w.r.t. the origin of coordinates
+        Args: None
+        Returns:
+            flipped Point
+        """
+        return Point(x=-self.x, y=-self.y)
+
+    def __eq__(self, other: Any, tol: float = 1e-6):
+        """Performs the equality comparison between current object and passed one.
+
+        Args:
+            other: object to compare against
+            tol: float error tolerance for considering two cameras equal
+
+        Returns:
+            boolean indicating if two objects are equal
+        """
+        if isinstance(self, other.__class__):
+            return (self - other).length() < tol
+        return False
+
+    def length(self) -> float:
+        """Computes the length of the vector from the origin of coordinates to the point
+
+        Returns:
+            float length of the vector from the origin of coordinates to the point
+        """
+        return np.sqrt(self.x**2 + self.y**2)
 
     def __repr__(self):
         return f"Point(x={self.x}, y={self.y})"
