@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # run pre-commits
 poetry run pre-commit run --all-files --verbose --config .pre-commit-config.yaml
 # $? stores exit value of the last command
