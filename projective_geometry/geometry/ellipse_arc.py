@@ -137,7 +137,7 @@ class EllipseArc:
             pt: Point defining the scaling of each axis in the 2D space
 
         Returns:
-            LineSegment resulting from scaling the 2D space
+            EllipseArc resulting from scaling the 2D space
         """
         return EllipseArc(ellipse=self.ellipse.scale(pt=pt), line=self.line.scale(pt=pt))
 
@@ -182,6 +182,9 @@ class EllipseArc:
             # Otherwise, we revert them. OpenCV reorders them, so we need to sum 360 to
             # the start angle
             return end_angle, start_angle + 360
+
+    def __repr__(self):
+        return f"EllipseArc(ellipse={str(self.ellipse)}, line={str(self.line)})"
 
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, thickness: int = 3):
         """Draws the ellipse arc within the given image in-place

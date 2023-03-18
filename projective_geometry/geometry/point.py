@@ -162,7 +162,7 @@ class Point:
             pt: Point defining the scaling of each axis in the 2D space
 
         Returns:
-            LineSegment resulting from scaling the 2D space
+            Point resulting from scaling the 2D space
         """
         return Point(x=self.x * pt.x, y=self.y * pt.y)
 

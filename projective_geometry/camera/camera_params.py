@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 
-from projective_geometry.camera import CameraPose
+from projective_geometry.camera.camera_pose import CameraPose
 
 
 class CameraParams:
@@ -37,3 +37,6 @@ class CameraParams:
         if isinstance(self, other.__class__):
             return (self.camera_pose == other.camera_pose) and ((self.focal_length - other.focal_length) < tol)
         return False
+
+    def __repr__(self):
+        return f"CameraParams(camera_pose=CameraPose({str(self.camera_pose)}, focal_length={self.focal_length})"

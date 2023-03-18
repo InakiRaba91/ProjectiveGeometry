@@ -43,3 +43,6 @@ class CameraPose:
         if isinstance(self, other.__class__):
             return max(np.abs(self.to_array() - other.to_array())) < tol
         return False
+
+    def __repr__(self):
+        return f"CameraPose(tx={self.tx}, ty={self.ty}, tz={self.tz}, tilt={self.tilt}, pan={self.pan}, roll={self.roll})"

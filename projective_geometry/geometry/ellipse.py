@@ -1,40 +1,13 @@
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Tuple
 
 import cv2
 import numpy as np
 
 from ..draw import Color
+from .conic import check_symmetric_and_non_degenerate
 from .exceptions import InvalidConicMatrixEllipseException, PointNotInEllipseException
 from .line import Line
 from .point import Point
-
-
-def check_symmetric_and_non_degenerate(mat: np.ndarray, tol: float, ndim: Optional[int] = None) -> bool:
-    """
-    Helper method to check whether a matrix is:
-    - symmetric i.e. elements above and below the diagonal are equal
-    - non degenerate i.e. the matrix determinant is non zero
-
-    Args:
-        mat (np.ndarray): Matrix to check.
-        tol (float): Tolerance within which to check zero equivalence.
-        ndim (Optional[int]): Dimensionality to check for in square matrix. Defaults to None.
-
-    Returns:
-        bool: Result if matrix is non degenerate and symmetric.
-    """
-    is_square = mat.shape[0] == mat.shape[1]
-
-    if ndim is not None:
-        is_square = is_square and (mat.shape[0] == ndim)
-
-    if not is_square:
-        return False
-
-    symmetric_matrix = np.isclose(mat, mat.T).all()
-    non_degenerate_matrix = np.abs(np.linalg.det(mat)) > tol
-
-    return is_square and symmetric_matrix and non_degenerate_matrix  # type: ignore
 
 
 class Ellipse:
@@ -340,6 +313,9 @@ class Ellipse:
         # apply reverted rigid transform
         rotated_pt = pt_rigid_ellipse.rotate(angle=self._angle)
         return rotated_pt + self._center
+
+    def __repr__(self):
+        return f"Ellipse(center={self.center}, axes={self.axes}, angle={self.angle})"
 
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, thickness: int = 3):
         """Draws the ellipse within the given image in-place

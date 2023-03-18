@@ -145,7 +145,7 @@ class Line:
             pt: Point defining the scaling of each axis in the 2D space
 
         Returns:
-            LineSegment resulting from scaling the 2D space
+            Line resulting from scaling the 2D space
         """
         return Line(a=self._a / pt.x, b=self._b / pt.y, c=self._c)
 

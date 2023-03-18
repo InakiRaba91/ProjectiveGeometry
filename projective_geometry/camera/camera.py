@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from projective_geometry.camera import CameraParams
+from projective_geometry.camera.camera_params import CameraParams
 from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry.line import Line
 from projective_geometry.geometry.point import Point
@@ -151,3 +151,6 @@ class Camera:
         E = E[:, [0, 1, 3]]
         H = K.dot(E)
         return cls(H=H)
+
+    def __repr__(self):
+        return f"Camera(H={self.H})"
