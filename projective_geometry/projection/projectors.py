@@ -4,48 +4,52 @@ import numpy as np
 
 from projective_geometry.camera import Camera
 from projective_geometry.geometry import Line, Point
+from projective_geometry.geometry.conic import Conic
 
 
 def project_points(camera: Camera, pts: Tuple[Point, ...]) -> Tuple[Point, ...]:
-    """Project points in the 3D world ground (z=0) to image
+    """
+    Project points using given camera
 
     Args:
-        pts_world_ground_array: tuple of Points in the ground of the 3D world (xy coordinates)
+        camera: Camera to project with
+        pts: tuple of Points to project
 
     Returns:
-        tuple of projected points Points in the image (pixel coordinates)
+        Tuple[Point, ...]: Projected points
     """
-
-    # convert world points to homogeneous coordinates (z=1) and transform to array
     pts_homogeneous = np.array([pt.to_homogeneous() for pt in pts])
-
-    # map them to image domain
     projected_pts_homogeneous = camera.H.dot(pts_homogeneous.T).T
-
-    # convert back from homogeneous domain (units are pixels, we're in image domain after projection)
-    projected_pts = tuple([Point.from_homogeneous(pt_homogeneous=pt) for pt in projected_pts_homogeneous])
-    return projected_pts
+    return tuple([Point.from_homogeneous(pt_homogeneous=pt) for pt in projected_pts_homogeneous])
 
 
 def project_lines(camera: Camera, lns: Tuple[Line, ...]) -> Tuple[Line, ...]:
     """
-    Method to project the "Line" type from image space to world space.
+    Project lines using given camera
 
     Args:
-        lines: Lines in pixel space to project to real world coordinates.
+        camera: Camera to project with
+        lines: Lines to project
 
     Returns:
-        Tuple[Line, ...]: Projected lines in real world pitch coordinates.
+        Tuple[Line, ...]: Projected lines
     """
-    # create matrix with 3D line coordinates
     ln_matrix = np.stack([line.to_array() for line in lns], axis=0)
-
-    # map to world domain
-    # H.T (is the mapping to take image lines into world lines)
-    # lines_image_mat.T is required to make the matrix 3 x N for multiplication with the 3 x 3 H^-1.T
-    # the final transpose is for convenience when working with the coordinates
     projected_ln_matrix = camera._H.T.dot(ln_matrix.T).T
+    return tuple([Line(a=ln_arr[0], b=ln_arr[1], c=ln_arr[2]) for ln_arr in projected_ln_matrix])
 
-    # convert to world Line objects
-    projected_lns = tuple([Line(a=ln_arr[0], b=ln_arr[1], c=ln_arr[2]) for ln_arr in projected_ln_matrix])
-    return projected_lns
+
+def project_conics(camera: Camera, conics: Tuple[Conic, ...]) -> Tuple[Conic, ...]:
+    """
+    Method to project Conic objects
+
+    Args:
+        camera: Camera to project with
+        conics: Conics to project
+
+    Returns:
+        Tuple[Conic, ...]: Projected conics
+    """
+    conic_mats = [conic.M for conic in conics]
+    Hinv = np.linalg.inv(camera.H)
+    return tuple(Hinv.T @ conic_mats @ Hinv)
