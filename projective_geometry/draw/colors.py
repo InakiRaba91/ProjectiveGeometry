@@ -12,3 +12,5 @@ class Color(object):
     ORANGE: Tuple = (0, 128, 255)
     WHITE: Tuple = (255, 255, 255)
     BLACK: Tuple = (0, 0, 0)
+    CYAN: Tuple = (249, 235, 180)
+    LIGHT_GREEN: Tuple = (187, 249, 180)

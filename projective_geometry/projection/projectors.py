@@ -52,4 +52,5 @@ def project_conics(camera: Camera, conics: Tuple[Conic, ...]) -> Tuple[Conic, ..
     """
     conic_mats = [conic.M for conic in conics]
     Hinv = np.linalg.inv(camera.H)
-    return tuple(Hinv.T @ conic_mats @ Hinv)
+    projected_conic_mats = Hinv.T @ conic_mats @ Hinv
+    return tuple([Conic(M=M) for M in projected_conic_mats])

@@ -143,7 +143,7 @@ class Camera:
         Rc = Rotation.from_euler("xyz", rot_angles, degrees=True).as_matrix()
         R = Rc.T  # transpose
         t = np.array([[camera_pose.tx], [camera_pose.ty], [camera_pose.tz]])
-        T = -Rc.dot(t)
+        T = -Rc.T.dot(t)
         K = cls.intrinsic_matrix_from_focal_length(focal_length=camera_params.focal_length, image_size=image_size)
         E = np.concatenate((R, T), axis=1)
 
