@@ -42,7 +42,7 @@ class Ellipse:
         return self._angle
 
     @classmethod
-    def is_valid_matrix_representation(cls, M: np.ndarray, tol: float = 1e-6) -> bool:
+    def is_valid_matrix_representation(cls, M: np.ndarray, tol: float = 1e-10) -> bool:
         """Verify if a matrix is a valid representation of an ellipse
 
         That implies that:
@@ -163,7 +163,7 @@ class Ellipse:
         Returns:
             Ellipse resulting from scaling the 2D space
         """
-        M, units = self.to_matrix()
+        M = self.to_matrix()
         Hinv = np.array([[1 / pt.x, 0, 0], [0, 1 / pt.y, 0], [0, 0, 1]])  # symmetric
         M_scaled = Hinv.dot(M).dot(Hinv)
         return Ellipse.from_matrix(M=M_scaled)

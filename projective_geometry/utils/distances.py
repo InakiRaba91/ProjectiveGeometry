@@ -1,0 +1,3 @@
+YARD = 1
+FOOT = YARD / 3
+INCH = FOOT / 12

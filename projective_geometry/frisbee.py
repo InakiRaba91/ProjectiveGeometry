@@ -9,6 +9,9 @@ from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry import Ellipse, Line, Point
 from projective_geometry.geometry.conic import Conic
 from projective_geometry.geometry.line_segment import LineSegment
+from projective_geometry.pitch_template.basketball_template import (
+    BasketballCourtTemplate,
+)
 from projective_geometry.projection.projectors import project_conics
 
 IMG_TEMPLATE_FPATH = "../results/animation_template.png"
@@ -152,6 +155,9 @@ def generate_frame(img: np.ndarray, x_frisbee: float):
 
 
 if __name__ == "__main__":
+    basketball_court = BasketballCourtTemplate()
+    img = basketball_court.draw()
+    cv2.imwrite("/home/inaki/basket.png", img)
     cap = cv2.VideoCapture(0)
     img = cv2.imread(IMG_TEMPLATE_FPATH)
     output_size = (img.shape[1], img.shape[0])

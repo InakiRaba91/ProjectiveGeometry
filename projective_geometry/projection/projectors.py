@@ -1,10 +1,14 @@
-from typing import Tuple
+from typing import Any, Optional, Tuple
 
+import cv2
 import numpy as np
 
 from projective_geometry.camera import Camera
+from projective_geometry.draw import Color
+from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry import Line, Point
 from projective_geometry.geometry.conic import Conic
+from projective_geometry.pitch_template.pitch_template import PitchTemplate
 
 
 def project_points(camera: Camera, pts: Tuple[Point, ...]) -> Tuple[Point, ...]:
@@ -54,3 +58,60 @@ def project_conics(camera: Camera, conics: Tuple[Conic, ...]) -> Tuple[Conic, ..
     Hinv = np.linalg.inv(camera.H)
     projected_conic_mats = Hinv.T @ conic_mats @ Hinv
     return tuple([Conic(M=M) for M in projected_conic_mats])
+
+
+def project_pitch_template(
+    pitch_template: PitchTemplate,
+    camera: Camera,
+    image_size: ImageSize,
+    frame: Optional[np.ndarray] = None,
+    color: Tuple[Any, ...] = Color.RED,
+    thickness: int = 3,
+) -> np.ndarray:
+    """
+    Method to project a pitch template into an image viewed through the homography matrix. This projection
+    generates a pitch template image from the point of view of the "camera" that the homography belongs to.
+
+    Args:
+        homography (Homography): Homography class instance
+        image_size (ImageSize): Image size to generate the image in.
+        frame (Optional[np.ndarray], optional):
+            Optional background frame to layer the warped template image onto.
+            If None, the method uses a black background. Defaults to None.
+        color: BGR int tuple indicating the color of the geometric features
+        thickness: int thickness of the drawn geometric features
+
+    Returns:
+        np.ndarray: Warped template image with or without background image.
+    """
+    # create the BEV image manually
+    pitch_template_img = pitch_template.draw(image_size=image_size, color=color, thickness=thickness)
+
+    # create BEV camera intrinsics
+    pitch_width, pitch_height = pitch_template.pitch_dims.width, pitch_template.pitch_dims.height
+    K_pitch_image_to_pitch_template = np.array(
+        [
+            [pitch_width / image_size.width, 0, -pitch_width / 2.0],
+            [0, pitch_height / image_size.height, -pitch_height / 2.0],
+            [0, 0, 1.0],
+        ]
+    )
+
+    # create a chained homography projection that maps from BEV camera -> desired camera homography
+    H_chained = camera.H.dot(K_pitch_image_to_pitch_template)
+
+    projected_pitch_image = cv2.warpPerspective(
+        src=pitch_template_img, M=H_chained, dsize=(image_size.width, image_size.height)
+    )
+
+    # optionally add the warped pitch template to a background image
+    if isinstance(frame, np.ndarray):
+        # checks
+        frame_image_size = ImageSize(height=frame.shape[0], width=frame.shape[1])
+        err_msg = f"Image size needs to match for frame ({frame_image_size}) and pitch ({image_size}) images"
+        assert frame_image_size == image_size, err_msg
+
+        # layer images
+        return cv2.addWeighted(frame, 1, projected_pitch_image, 0.5, 0)
+
+    return projected_pitch_image
