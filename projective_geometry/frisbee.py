@@ -11,18 +11,18 @@ from projective_geometry.geometry.conic import Conic
 from projective_geometry.geometry.line_segment import LineSegment
 from projective_geometry.projection.projectors import project_conics
 
-IMG_TEMPLATE_FPATH = "../data/animation_template.png"
-PINHOLE_SVG = Point(x=614.74318, y=34.33942)
-IMG_SVG_SIZE = ImageSize(width=1200.46524, height=129.35734)
-Y_GROUND_SVG = 91.50992
-X_FILM_SVG = 585.76633
+IMG_TEMPLATE_FPATH = "../results/animation_template.png"
+PINHOLE_SVG = Point(x=497.18973, y=33.56244)
+IMG_SVG_SIZE = ImageSize(width=993.77657, height=287.99746)
+Y_GROUND_SVG = 90.30712
+X_FILM_SVG = 468.59334
 UNIT = 28.585252
 FRISBEE_COLOR = (0, 199, 137)
 FRISBEE_DISTANCE_TO_PINHOLE = 12
 FRISBEE_BORDER_COLOR = (0, 128, 0)
 RADIUS_FRISBEE = 5
 SIZE_FRISBEE_PERSEPECTIVE = Point(x=RADIUS_FRISBEE * UNIT, y=18.33109)
-IMG_DISPLAY_UNIT = 300
+IMG_DISPLAY_UNIT = 500
 BORDER = 15
 CAMERA_HEIGHT = 2 * IMG_DISPLAY_UNIT
 CAMERA = Camera.from_camera_params(
@@ -33,10 +33,10 @@ CAMERA = Camera.from_camera_params(
     image_size=ImageSize(width=IMG_DISPLAY_UNIT, height=IMG_DISPLAY_UNIT),
 )
 CORNERS_FILM = [
-    Point(x=2199, y=99),
-    Point(x=2228, y=72),
-    Point(x=2199, y=197),
-    Point(x=2228, y=169),
+    Point(x=1755, y=96),
+    Point(x=1784, y=69),
+    Point(x=1755, y=194),
+    Point(x=1784, y=165),
 ]
 CORNERS_DISPLAY = [
     Point(x=0, y=0),
@@ -46,11 +46,11 @@ CORNERS_DISPLAY = [
 ]
 CAMERA_FILM = Camera.from_point_correspondences(CORNERS_DISPLAY, CORNERS_FILM)
 OVERRIDEN_CAMERA_LINE = LineSegment(
-    pt1=Point(x=2199, y=98),
-    pt2=Point(x=2305, y=98),
+    pt1=Point(x=1754, y=95),
+    pt2=Point(x=1860, y=95),
 )
 FONT = cv2.FONT_HERSHEY_SIMPLEX
-FONT_SCALE = 1.5
+FONT_SCALE = 3
 THICKNESS_TEXT = 2
 BACKGROUND_COLOR = {
     "Ellipse": Color.YELLOW,
@@ -65,9 +65,8 @@ def label_conic_type(img: np.ndarray, conic_type: str, background_color: Tuple[A
     (width, height), baseline = cv2.getTextSize(conic_type, FONT, FONT_SCALE, THICKNESS_TEXT)
     text_patch = (np.ones((height + baseline, width, 3)) * background_color).astype(np.uint8)
     cv2.putText(text_patch, conic_type, (0, height), FONT, FONT_SCALE, Color.BLACK, THICKNESS_TEXT)
-    xc = (IMG_DISPLAY_UNIT + 2 * BORDER - width) // 2
-    x = img.shape[1] - (IMG_DISPLAY_UNIT + BORDER * 2) + xc
-    y = IMG_DISPLAY_UNIT + BORDER * 2 + MARGIN_TEXT
+    x = (img.shape[1] - width) // 2
+    y = img.shape[0] - (IMG_DISPLAY_UNIT + BORDER * 2 + MARGIN_TEXT + height + baseline)
     img[y : (y + height + baseline), x : (x + width), :] = text_patch
     return img
 
@@ -147,7 +146,8 @@ def generate_frame(img: np.ndarray, x_frisbee: float):
     img_display[BORDER:-BORDER, BORDER:-BORDER, :] = img_captured
     img_display = img_display.transpose((1, 0, 2))
     h, w = img_display.shape[:2]
-    img[:h, -w:, :] = img_display
+    x = int((img_size.width - w) / 2)
+    img[-h:, x : w + x, :] = img_display
     return img
 
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     output_size = (img.shape[1], img.shape[0])
     fps = 3
     n_frames = 49
-    out = cv2.VideoWriter("../results/frisbee.avi", cv2.VideoWriter_fourcc("M", "J", "P", "G"), fps, output_size)
+    out = cv2.VideoWriter("../results/frisbee.mp4", cv2.VideoWriter_fourcc("M", "J", "P", "G"), fps, output_size)
     x_start = PINHOLE_SVG.x + FRISBEE_DISTANCE_TO_PINHOLE * UNIT
     x_end = PINHOLE_SVG.x - FRISBEE_DISTANCE_TO_PINHOLE * UNIT
     # we ensure the number of points is odd so we can see the parabola

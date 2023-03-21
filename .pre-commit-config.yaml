@@ -4,7 +4,7 @@ repos:
     hooks:
       - id: detect-private-key
       - id: check-added-large-files
-        exclude: ^tests/data/
+        exclude: ^results/
       - id: check-merge-conflict
       - id: check-executables-have-shebangs
       - id: detect-private-key
@@ -15,13 +15,13 @@ repos:
       - id: check-json
       - id: check-ast
       - id: name-tests-test
-        exclude: tests/integration_tests/
         args: [--django]
 
   - repo: https://github.com/syntaqx/git-hooks
     rev: v0.0.17
     hooks:
       - id: forbid-binary
+        exclude: ^results/
 
   - repo: https://github.com/psf/black
     rev: 22.3.0
