@@ -30,7 +30,7 @@ class ImageSize:
         return self.width == other.width and self.height == other.height
 
     def __repr__(self):
-        return f"Point(width={self.width}, height={self.height})"
+        return f"ImageSize(width={self.width}, height={self.height})"
 
 
 BASE_IMAGE_SIZE = ImageSize(width=1280, height=720)
