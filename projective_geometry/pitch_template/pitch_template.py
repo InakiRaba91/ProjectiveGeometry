@@ -1,4 +1,5 @@
-from typing import Any, List, Tuple, Union
+import random
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -110,7 +111,7 @@ class PitchTemplate(object):
     def draw(
         self,
         image_size: ImageSize = BASE_IMAGE_SIZE,
-        color: Tuple[Any, ...] = Color.RED,
+        color: Optional[Tuple[Any, ...]] = None,
         thickness: int = 3,
     ) -> np.ndarray:
         """Draw pitch template in an image with given size
@@ -127,11 +128,12 @@ class PitchTemplate(object):
         # the image is centered at (image_size.width/2, image_shape.height/2)
         # conversion to int is not strictly necessary, but mypy complains otherwise
         img = np.zeros((int(image_size.height), int(image_size.width), 3), dtype=np.uint8)
-        for geometric_feature in self.geometric_features:
+        for idx, geometric_feature in enumerate(self.geometric_features):
             geometric_feature_image = self.pitch_template_to_pitch_image(
                 geometric_feature=geometric_feature, image_size=image_size
             )
-            geometric_feature_image.draw(img, color=color, thickness=thickness)
+            color_feature: Tuple[Any, ...] = random.choice(Color.get_colors()) if color is None else color  # ignore
+            geometric_feature_image.draw(img, color=color_feature, thickness=thickness)
 
         return img
 

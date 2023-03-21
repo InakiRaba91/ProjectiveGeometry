@@ -1,4 +1,5 @@
-from typing import Tuple
+import inspect
+from typing import Any, Tuple
 
 
 class Color(object):
@@ -14,3 +15,10 @@ class Color(object):
     BLACK: Tuple = (0, 0, 0)
     CYAN: Tuple = (249, 235, 180)
     LIGHT_GREEN: Tuple = (187, 249, 180)
+
+    @classmethod
+    def get_colors(cls) -> Tuple[Tuple[Any, ...]]:
+        """Returns list with all available colors"""
+        attributes = inspect.getmembers(Color, lambda a: not (inspect.isroutine(a)))
+        color_attributes = [a for a in attributes if not (a[0].startswith("__") and a[0].endswith("__"))]
+        return tuple([rgb for (name, rgb) in color_attributes])  # type: ignore
