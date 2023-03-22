@@ -11,7 +11,14 @@ from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry import Ellipse, Line, Point
 from projective_geometry.geometry.conic import Conic
 from projective_geometry.geometry.line_segment import LineSegment
-from projective_geometry.projection.projectors import project_conics
+from projective_geometry.pitch_template.basketball_template import (
+    BasketballCourtTemplate,
+)
+from projective_geometry.projection.projectors import (
+    project_conics,
+    project_pitch_template,
+)
+from projective_geometry.utils.distances import FOOT, INCH
 
 PINHOLE_SVG = Point(x=497.18973, y=33.56244)
 IMG_SVG_SIZE = ImageSize(width=993.77657, height=287.99746)
@@ -62,6 +69,7 @@ BACKGROUND_COLOR = {
 MARGIN_TEXT = 5
 PROJECT_LOCATION = Path(__file__).parent.parent
 IMG_TEMPLATE_FPATH = PROJECT_LOCATION / "results/animation_template.png"
+IMG_CELTICS_FPATH = PROJECT_LOCATION / "results/celtics.png"
 
 cli_app = Typer()
 
@@ -192,6 +200,41 @@ def frisbee_demo(output: Path = PROJECT_LOCATION / "results/frisbee.mp4"):
             label_conic_type(img=frame, conic_type=conic_type, background_color=BACKGROUND_COLOR[conic_type])
         out.write(frame)
     out.release()
+
+
+@cli_app.command()
+def celtics_demo(output: Path = PROJECT_LOCATION / "results/celtics_with_projected_court.png"):
+    # obtain camera from annotated points
+    W2, H2 = BasketballCourtTemplate.PITCH_WIDTH / 2, BasketballCourtTemplate.PITCH_HEIGHT / 2
+    points_frame = [
+        Point(x=845, y=290),
+        Point(x=126, y=872),
+        Point(x=1692, y=367),
+        Point(x=1115, y=707),
+        Point(x=1560, y=644),
+    ]
+    points_template = [
+        Point(x=-W2, y=-H2),
+        Point(x=-W2, y=H2),
+        Point(x=-W2 + 28 * FOOT, y=-H2),
+        Point(x=-W2 + 19 * FOOT, y=8 * FOOT),
+        Point(x=-W2 + 28 * FOOT + 12 * INCH, y=0),
+    ]
+    camera = Camera.from_point_correspondences(pts_source=points_template, pts_target=points_frame)
+
+    # project basketball court template
+    basketball_court = BasketballCourtTemplate()
+    frame = cv2.imread(IMG_CELTICS_FPATH.as_posix())
+    image_size = ImageSize(width=frame.shape[1], height=frame.shape[0])
+    frame_with_projected_court = project_pitch_template(
+        pitch_template=basketball_court,
+        camera=camera,
+        image_size=image_size,
+        frame=frame,
+        thickness=12,
+        color=Color.BLUE,
+    )
+    cv2.imwrite(output.as_posix(), frame_with_projected_court)
 
 
 # Program entry point redirection
