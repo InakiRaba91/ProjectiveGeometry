@@ -1,7 +1,9 @@
+from pathlib import Path
 from typing import Any, Tuple
 
 import cv2
 import numpy as np
+from typer import Typer
 
 from projective_geometry.camera import Camera, CameraParams, CameraPose
 from projective_geometry.draw import Color
@@ -9,12 +11,8 @@ from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry import Ellipse, Line, Point
 from projective_geometry.geometry.conic import Conic
 from projective_geometry.geometry.line_segment import LineSegment
-from projective_geometry.pitch_template.basketball_template import (
-    BasketballCourtTemplate,
-)
 from projective_geometry.projection.projectors import project_conics
 
-IMG_TEMPLATE_FPATH = "../results/animation_template.png"
 PINHOLE_SVG = Point(x=497.18973, y=33.56244)
 IMG_SVG_SIZE = ImageSize(width=993.77657, height=287.99746)
 Y_GROUND_SVG = 90.30712
@@ -62,6 +60,10 @@ BACKGROUND_COLOR = {
     "Emphasis": Color.GREEN,
 }
 MARGIN_TEXT = 5
+PROJECT_LOCATION = Path(__file__).parent.parent
+IMG_TEMPLATE_FPATH = PROJECT_LOCATION / "results/animation_template.png"
+
+cli_app = Typer()
 
 
 def label_conic_type(img: np.ndarray, conic_type: str, background_color: Tuple[Any, ...]):
@@ -154,16 +156,13 @@ def generate_frame(img: np.ndarray, x_frisbee: float):
     return img
 
 
-if __name__ == "__main__":
-    basketball_court = BasketballCourtTemplate()
-    img = basketball_court.draw()
-    cv2.imwrite("/home/inaki/basket.png", img)
-    cap = cv2.VideoCapture(0)
-    img = cv2.imread(IMG_TEMPLATE_FPATH)
+@cli_app.command()
+def frisbee_demo(output: Path = PROJECT_LOCATION / "results/frisbee.mp4"):
+    img = cv2.imread(IMG_TEMPLATE_FPATH.as_posix())
     output_size = (img.shape[1], img.shape[0])
     fps = 3
     n_frames = 49
-    out = cv2.VideoWriter("../results/frisbee.mp4", cv2.VideoWriter_fourcc("M", "J", "P", "G"), fps, output_size)
+    out = cv2.VideoWriter(output.as_posix(), cv2.VideoWriter_fourcc("M", "J", "P", "G"), fps, output_size)
     x_start = PINHOLE_SVG.x + FRISBEE_DISTANCE_TO_PINHOLE * UNIT
     x_end = PINHOLE_SVG.x - FRISBEE_DISTANCE_TO_PINHOLE * UNIT
     # we ensure the number of points is odd so we can see the parabola
@@ -193,3 +192,8 @@ if __name__ == "__main__":
             label_conic_type(img=frame, conic_type=conic_type, background_color=BACKGROUND_COLOR[conic_type])
         out.write(frame)
     out.release()
+
+
+# Program entry point redirection
+if __name__ == "__main__":
+    cli_app()
