@@ -64,8 +64,8 @@ class Camera:
     @classmethod
     def from_point_correspondences(
         cls,
-        template_points: List[Point],
-        frame_points: List[Point],
+        pts_source: List[Point],
+        pts_target: List[Point],
         ransac: bool = False,
     ) -> "Camera":
         """
@@ -73,21 +73,21 @@ class Camera:
         method to retrieve the homography matrix.
 
         Args:
-            template_points (List[Point]): List of template points
-            frame_points (List[Point]): List of frame points
+            pts_source (List[Point]): List of points in first image
+            pts_target (List[Point]): List of points in second image
             ransac (bool): Boolean of whether to use RANSAC optimisation to get homography. Defaults to False.
 
         Returns:
             Homography: 3 x 3 Homography object.
         """
         # checks
-        num_points = len(frame_points)
+        num_points = len(pts_target)
         assert num_points >= 4, f"At least 4 points are required for camera calibration, only {num_points} were given"
 
         # generate homography using opencv
         # cv2.findHomography requires float32 arrays as arguments
-        template_pts_f32 = np.array([pt.to_array() for pt in template_points]).astype(np.float32)
-        image_pts_f32 = np.array([pt.to_array() for pt in frame_points]).astype(np.float32)
+        template_pts_f32 = np.array([pt.to_array() for pt in pts_source]).astype(np.float32)
+        image_pts_f32 = np.array([pt.to_array() for pt in pts_target]).astype(np.float32)
 
         if ransac:
             homography_matrix, _ = cv2.findHomography(template_pts_f32, image_pts_f32, cv2.RANSAC)

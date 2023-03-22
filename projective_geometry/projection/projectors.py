@@ -8,7 +8,11 @@ from projective_geometry.draw import Color
 from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry import Line, Point
 from projective_geometry.geometry.conic import Conic
+from projective_geometry.pitch_template.basketball_template import (
+    BasketballCourtTemplate,
+)
 from projective_geometry.pitch_template.pitch_template import PitchTemplate
+from projective_geometry.utils.distances import FOOT, INCH
 
 
 def project_points(camera: Camera, pts: Tuple[Point, ...]) -> Tuple[Point, ...]:
@@ -112,6 +116,38 @@ def project_pitch_template(
         assert frame_image_size == image_size, err_msg
 
         # layer images
-        return cv2.addWeighted(frame, 1, projected_pitch_image, 0.5, 0)
+        return cv2.addWeighted(frame, 1, projected_pitch_image, 1, 0)
 
     return projected_pitch_image
+
+
+if __name__ == "__main__":
+    W2, H2 = BasketballCourtTemplate.PITCH_WIDTH / 2, BasketballCourtTemplate.PITCH_HEIGHT / 2
+    points_frame = [
+        Point(x=845, y=290),
+        Point(x=126, y=872),
+        Point(x=1692, y=367),
+        Point(x=1115, y=707),
+        Point(x=1560, y=644),
+    ]
+    points_template = [
+        Point(x=-W2, y=-H2),
+        Point(x=-W2, y=H2),
+        Point(x=-W2 + 28 * FOOT, y=-H2),
+        Point(x=-W2 + 19 * FOOT, y=8 * FOOT),
+        Point(x=-W2 + 28 * FOOT + 12 * INCH, y=0),
+    ]
+    camera = Camera.from_point_correspondences(pts_source=points_template, pts_target=points_frame)
+    basketball_court = BasketballCourtTemplate()
+    frame = cv2.imread("/home/inaki/Projects/ProjectiveGeometry/results/celtics.png")
+    image_size = ImageSize(width=frame.shape[1], height=frame.shape[0])
+    frame_with_projected_court = project_pitch_template(
+        pitch_template=basketball_court,
+        camera=camera,
+        image_size=image_size,
+        frame=frame,
+        thickness=12,
+        color=Color.BLUE,
+    )
+    cv2.imwrite("/home/inaki/Projects/ProjectiveGeometry/results/out.png", frame_with_projected_court)
+    print("Done!")
