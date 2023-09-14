@@ -8,6 +8,7 @@ from projective_geometry.draw import Color
 from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry import Line, Point
 from projective_geometry.geometry.conic import Conic
+from projective_geometry.geometry.line_segment import LineSegment
 from projective_geometry.pitch_template.pitch_template import PitchTemplate
 
 
@@ -39,8 +40,28 @@ def project_lines(camera: Camera, lns: Tuple[Line, ...]) -> Tuple[Line, ...]:
         Tuple[Line, ...]: Projected lines
     """
     ln_matrix = np.stack([line.to_array() for line in lns], axis=0)
-    projected_ln_matrix = camera._H.T.dot(ln_matrix.T).T
+    projected_ln_matrix = np.linalg.inv(camera._H.T).dot(ln_matrix.T).T
     return tuple([Line(a=ln_arr[0], b=ln_arr[1], c=ln_arr[2]) for ln_arr in projected_ln_matrix])
+
+
+def project_line_segments(camera: Camera, ln_segments: Tuple[LineSegment, ...]) -> Tuple[LineSegment, ...]:
+    """
+    Project lines using given camera
+
+    Args:
+        camera: Camera to project with
+        ln_segments: LineSegments to project
+
+    Returns:
+        Tuple[Line, ...]: Projected lines
+    """
+    # extract all endpoints
+    pts = []
+    for ln_segment in ln_segments:
+        pts.append(ln_segment.pt1)
+        pts.append(ln_segment.pt2)
+    proj_pts = project_points(camera=camera, pts=tuple(pts))
+    return tuple([LineSegment(pt1=proj_pts[idx], pt2=proj_pts[idx + 1]) for idx in range(0, len(proj_pts), 2)])
 
 
 def project_conics(camera: Camera, conics: Tuple[Conic, ...]) -> Tuple[Conic, ...]:
