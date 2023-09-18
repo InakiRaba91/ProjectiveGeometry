@@ -72,6 +72,7 @@ IMG_TEMPLATE_FPATH = PROJECT_LOCATION / "results/animation_template.png"
 IMG_CELTICS_FPATH = PROJECT_LOCATION / "results/celtics.png"
 PT_RADIUS = 10
 PT_THICKNESS = 7
+BORDER_SIZE = 10
 
 cli_app = Typer()
 
@@ -532,6 +533,43 @@ def homography_from_correspondences_demo(
         pt_img = basketball_court.pitch_template_to_pitch_image(geometric_feature=pt, image_size=image_size)
         pt_img.draw(img=basketball_court_img, color=Color.RED, radius=PT_RADIUS, thickness=PT_THICKNESS)  # type: ignore
     cv2.imwrite(output.as_posix(), np.concatenate((frame_with_projected_court, basketball_court_img), axis=1))
+
+
+@cli_app.command()
+def homography_from_image_registration(
+    target: Path = PROJECT_LOCATION / "results/target.png",
+    source: Path = PROJECT_LOCATION / "results/source.png",
+):
+    target_image = cv2.imread(target.as_posix())
+    source_image = cv2.imread(source.as_posix())
+    camera, matched_keypoints = Camera.from_image_registration(target_image=target_image, source_image=source_image)
+
+    # visualize matched keypoints
+    img_matches = cv2.drawMatches(
+        target_image,
+        matched_keypoints.target_keypoints,
+        source_image,
+        matched_keypoints.source_keypoints,
+        matched_keypoints.matches,
+        None,
+    )
+    cv2.imwrite((PROJECT_LOCATION / "results/matches.png").as_posix(), img_matches)
+
+    # visualize warped image
+    height, width, _ = source_image.shape
+    source_image_border = cv2.copyMakeBorder(
+        source_image[BORDER_SIZE:-BORDER_SIZE, BORDER_SIZE:-BORDER_SIZE],
+        BORDER_SIZE,
+        BORDER_SIZE,
+        BORDER_SIZE,
+        BORDER_SIZE,
+        cv2.BORDER_CONSTANT,
+        value=Color.RED,
+    )
+    warped_image = cv2.warpPerspective(source_image_border, camera.H, (width, height))
+    # add red border to warped image without changing its size
+    target_and_warped_images = cv2.addWeighted(target_image, 1, warped_image, 0.5, 0)
+    cv2.imwrite((PROJECT_LOCATION / "results/warped.png").as_posix(), target_and_warped_images)
 
 
 # Program entry point redirection

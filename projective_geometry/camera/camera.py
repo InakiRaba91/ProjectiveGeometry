@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -11,6 +11,10 @@ from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry.ellipse import Ellipse
 from projective_geometry.geometry.line import Line
 from projective_geometry.geometry.point import Point
+from projective_geometry.image_registration.register import (
+    ImageRegistrator,
+    MatchedKeypoints,
+)
 
 
 class Camera:
@@ -352,6 +356,20 @@ class Camera:
             raise ValueError(f"{err_msg}")
 
         return cls(H=homography_matrix)
+
+    @classmethod
+    def from_image_registration(cls, target_image: np.ndarray, source_image: np.ndarray) -> Tuple["Camera", MatchedKeypoints]:
+        """Compute homography matrix from image registration
+
+        Args:
+            target_image: ndarray reference image that will remain static
+            source_image: ndarray image that will undergo a homography transform in order to align with target image
+
+        Returns:
+            Camera with homography matrix from image registration
+        """
+        matched_keypoints, H_registration = ImageRegistrator().register(target_image=target_image, source_image=source_image)
+        return cls(H=H_registration), matched_keypoints
 
     @staticmethod
     def intrinsic_matrix_from_focal_length(focal_length: float, image_size: ImageSize) -> np.ndarray:
