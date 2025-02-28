@@ -42,7 +42,7 @@ class LineSegment:
 
         Args:
             other: object to compare against
-            tol: float error tolerance for considering two cameras equal
+            tol: float error tolerance for considering two line segments equal
 
         Returns:
             boolean indicating if two objects are equal

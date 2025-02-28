@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from typer import Typer
 
-from projective_geometry.camera import Camera, CameraParams, CameraPose
+from projective_geometry.camera import Homography, CameraParams, CameraPose
 from projective_geometry.draw import Color
 from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry import Ellipse, Line, Point
@@ -33,7 +33,7 @@ SIZE_FRISBEE_PERSEPECTIVE = Point(x=RADIUS_FRISBEE * UNIT, y=18.33109)
 IMG_DISPLAY_UNIT = 500
 BORDER = 15
 CAMERA_HEIGHT = 2 * IMG_DISPLAY_UNIT
-CAMERA = Camera.from_camera_params(
+HOMOGRAPHY = Homography.from_camera_params(
     camera_params=CameraParams(
         camera_pose=CameraPose(tx=0, ty=0, tz=CAMERA_HEIGHT, roll=0, tilt=90, pan=0),
         focal_length=IMG_DISPLAY_UNIT,
@@ -52,7 +52,7 @@ CORNERS_DISPLAY = [
     Point(x=0, y=IMG_DISPLAY_UNIT),
     Point(x=IMG_DISPLAY_UNIT, y=IMG_DISPLAY_UNIT),
 ]
-CAMERA_FILM = Camera.from_point_correspondences(CORNERS_DISPLAY, CORNERS_FILM)
+HOMOGRAPHY_FILM = Homography.from_point_correspondences(CORNERS_DISPLAY, CORNERS_FILM)
 OVERRIDEN_CAMERA_LINE = LineSegment(
     pt1=Point(x=1754, y=95),
     pt2=Point(x=1860, y=95),
@@ -108,7 +108,7 @@ def generate_projected_conic_img(x_frisbee: float):
         angle=0,
     )
     conic = Conic(M=ellipse.to_matrix())
-    projected_conic = project_conics(camera=CAMERA, conics=(conic,))[0]
+    projected_conic = project_conics(homography=HOMOGRAPHY, conics=(conic,))[0]
     projected_conic.draw(img=img_captured, color=FRISBEE_COLOR)
     return img_captured
 
@@ -116,7 +116,7 @@ def generate_projected_conic_img(x_frisbee: float):
 def project_image_to_camera_film(img: np.ndarray, img_captured: np.ndarray):
     img_flipped = np.flip(img_captured.transpose((1, 0, 2)), (0, 1))
     dsize = (img.shape[1], img.shape[0])
-    img_film = cv2.warpPerspective(src=img_flipped, M=CAMERA_FILM.H, dsize=dsize)
+    img_film = cv2.warpPerspective(src=img_flipped, M=HOMOGRAPHY_FILM.H, dsize=dsize)
     mask = img_film[:, :, 1] > 0
     img[mask] = img_film[mask]
 
@@ -209,7 +209,7 @@ def frisbee_demo(output: Path = PROJECT_LOCATION / "results/frisbee.mp4"):
 def homography_from_point_correspondences_demo(
     output: Path = PROJECT_LOCATION / "results/celtics_with_projected_court_from_points.png",
 ):
-    # obtain camera from annotated points
+    # obtain homography from annotated points
     W2, H2 = BasketballCourtTemplate.PITCH_WIDTH / 2, BasketballCourtTemplate.PITCH_HEIGHT / 2
     points_frame = [
         Point(x=845, y=290),
@@ -225,7 +225,7 @@ def homography_from_point_correspondences_demo(
         Point(x=-W2 + 19 * FOOT, y=8 * FOOT),
         Point(x=-W2 + 28 * FOOT + 12 * INCH, y=0),
     ]
-    camera = Camera.from_point_correspondences(pts_source=points_template, pts_target=points_frame)
+    homography = Homography.from_point_correspondences(pts_source=points_template, pts_target=points_frame)
 
     # project basketball court template
     basketball_court = BasketballCourtTemplate()
@@ -233,7 +233,7 @@ def homography_from_point_correspondences_demo(
     image_size = ImageSize(width=frame.shape[1], height=frame.shape[0])
     frame_with_projected_court = project_pitch_template(
         pitch_template=basketball_court,
-        camera=camera,
+        homography=homography,
         image_size=image_size,
         frame=frame,
         thickness=12,
@@ -256,7 +256,7 @@ def homography_from_point_correspondences_demo(
 def homography_from_line_correspondences_demo(
     output: Path = PROJECT_LOCATION / "results/celtics_with_projected_court_from_lines.png",
 ):
-    # obtain camera from annotated points
+    # obtain homography from annotated points
     W2, H2 = BasketballCourtTemplate.PITCH_WIDTH / 2, BasketballCourtTemplate.PITCH_HEIGHT / 2
     lines_template = [
         Line.from_points(pt1=Point(x=-W2, y=-H2), pt2=Point(x=W2, y=-H2)),
@@ -274,14 +274,14 @@ def homography_from_line_correspondences_demo(
         Line(a=102.77328087499652, b=83.87270632687233, c=-173739.07908707517),
         Line(a=38.13697697658064, b=-333.79059163488, c=193512.39303263795),
     ]
-    camera = Camera.from_line_correspondences(lines_source=lines_template, lines_target=lines_frame)
+    homography = Homography.from_line_correspondences(lines_source=lines_template, lines_target=lines_frame)
     # project basketball court template
     basketball_court = BasketballCourtTemplate()
     frame = cv2.imread(IMG_CELTICS_FPATH.as_posix())
     image_size = ImageSize(width=frame.shape[1], height=frame.shape[0])
     frame_with_projected_court = project_pitch_template(
         pitch_template=basketball_court,
-        camera=camera,
+        homography=homography,
         image_size=image_size,
         frame=frame,
         thickness=12,
@@ -368,7 +368,7 @@ def homography_from_ellipse_correspondences_demo(
         ),
     ]
 
-    camera = Camera.from_multiple_ellipse_correspondences(ellipses_source=ellipses_template, ellipses_target=ellipses_frame)
+    homography = Homography.from_multiple_ellipse_correspondences(ellipses_source=ellipses_template, ellipses_target=ellipses_frame)
 
     # project basketball court template
     basketball_court = BasketballCourtTemplate()
@@ -376,7 +376,7 @@ def homography_from_ellipse_correspondences_demo(
     image_size = ImageSize(width=frame.shape[1], height=frame.shape[0])
     frame_with_projected_court = project_pitch_template(
         pitch_template=basketball_court,
-        camera=camera,
+        homography=homography,
         image_size=image_size,
         frame=frame,
         thickness=12,
@@ -397,7 +397,7 @@ def homography_from_ellipse_correspondences_demo(
 def homography_from_correspondences_demo(
     output: Path = PROJECT_LOCATION / "results/celtics_with_projected_court_from_multiple_features.png",
 ):
-    # obtain camera from annotated points
+    # obtain homography from annotated points
     W2, H2 = BasketballCourtTemplate.PITCH_WIDTH / 2, BasketballCourtTemplate.PITCH_HEIGHT / 2
     points_frame = [
         Point(x=845, y=290),
@@ -492,7 +492,7 @@ def homography_from_correspondences_demo(
         ),
     ]
 
-    camera = Camera.from_correspondences(
+    homography = Homography.from_correspondences(
         pts_source=points_template,
         pts_target=points_frame,
         lines_source=lines_template,
@@ -507,7 +507,7 @@ def homography_from_correspondences_demo(
     image_size = ImageSize(width=frame.shape[1], height=frame.shape[0])
     frame_with_projected_court = project_pitch_template(
         pitch_template=basketball_court,
-        camera=camera,
+        homography=homography,
         image_size=image_size,
         frame=frame,
         thickness=12,
@@ -542,7 +542,7 @@ def homography_from_image_registration(
 ):
     target_image = cv2.imread(target.as_posix())
     source_image = cv2.imread(source.as_posix())
-    camera, matched_keypoints = Camera.from_image_registration(target_image=target_image, source_image=source_image)
+    homography, matched_keypoints = Homography.from_image_registration(target_image=target_image, source_image=source_image)
 
     # visualize matched keypoints
     img_matches = cv2.drawMatches(
@@ -566,7 +566,7 @@ def homography_from_image_registration(
         cv2.BORDER_CONSTANT,
         value=Color.RED,
     )
-    warped_image = cv2.warpPerspective(source_image_border, camera.H, (width, height))
+    warped_image = cv2.warpPerspective(source_image_border, homography.H, (width, height))
     # add red border to warped image without changing its size
     target_and_warped_images = cv2.addWeighted(target_image, 1, warped_image, 0.5, 0)
     cv2.imwrite((PROJECT_LOCATION / "results/warped.png").as_posix(), target_and_warped_images)

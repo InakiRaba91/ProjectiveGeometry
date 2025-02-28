@@ -3,7 +3,7 @@ from typing import Any, Optional, Tuple
 import cv2
 import numpy as np
 
-from projective_geometry.camera import Camera
+from projective_geometry.camera import Homography
 from projective_geometry.draw import Color
 from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry import Line, Point
@@ -12,44 +12,44 @@ from projective_geometry.geometry.line_segment import LineSegment
 from projective_geometry.pitch_template.pitch_template import PitchTemplate
 
 
-def project_points(camera: Camera, pts: Tuple[Point, ...]) -> Tuple[Point, ...]:
+def project_points(homography: Homography, pts: Tuple[Point, ...]) -> Tuple[Point, ...]:
     """
-    Project points using given camera
+    Project points using given homography
 
     Args:
-        camera: Camera to project with
+        homography: Homography to project with
         pts: tuple of Points to project
 
     Returns:
         Tuple[Point, ...]: Projected points
     """
     pts_homogeneous = np.array([pt.to_homogeneous() for pt in pts])
-    projected_pts_homogeneous = camera.H.dot(pts_homogeneous.T).T
+    projected_pts_homogeneous = homography.H.dot(pts_homogeneous.T).T
     return tuple([Point.from_homogeneous(pt_homogeneous=pt) for pt in projected_pts_homogeneous])
 
 
-def project_lines(camera: Camera, lns: Tuple[Line, ...]) -> Tuple[Line, ...]:
+def project_lines(homography: Homography, lns: Tuple[Line, ...]) -> Tuple[Line, ...]:
     """
-    Project lines using given camera
+    Project lines using given homography
 
     Args:
-        camera: Camera to project with
+        homography: Homography to project with
         lines: Lines to project
 
     Returns:
         Tuple[Line, ...]: Projected lines
     """
     ln_matrix = np.stack([line.to_array() for line in lns], axis=0)
-    projected_ln_matrix = np.linalg.inv(camera._H.T).dot(ln_matrix.T).T
+    projected_ln_matrix = np.linalg.inv(homography._H.T).dot(ln_matrix.T).T
     return tuple([Line(a=ln_arr[0], b=ln_arr[1], c=ln_arr[2]) for ln_arr in projected_ln_matrix])
 
 
-def project_line_segments(camera: Camera, ln_segments: Tuple[LineSegment, ...]) -> Tuple[LineSegment, ...]:
+def project_line_segments(homography: Homography, ln_segments: Tuple[LineSegment, ...]) -> Tuple[LineSegment, ...]:
     """
-    Project lines using given camera
+    Project lines using given homography
 
     Args:
-        camera: Camera to project with
+        homography: Homography to project with
         ln_segments: LineSegments to project
 
     Returns:
@@ -60,30 +60,30 @@ def project_line_segments(camera: Camera, ln_segments: Tuple[LineSegment, ...]) 
     for ln_segment in ln_segments:
         pts.append(ln_segment.pt1)
         pts.append(ln_segment.pt2)
-    proj_pts = project_points(camera=camera, pts=tuple(pts))
+    proj_pts = project_points(homography=homography, pts=tuple(pts))
     return tuple([LineSegment(pt1=proj_pts[idx], pt2=proj_pts[idx + 1]) for idx in range(0, len(proj_pts), 2)])
 
 
-def project_conics(camera: Camera, conics: Tuple[Conic, ...]) -> Tuple[Conic, ...]:
+def project_conics(homography: Homography, conics: Tuple[Conic, ...]) -> Tuple[Conic, ...]:
     """
     Method to project Conic objects
 
     Args:
-        camera: Camera to project with
+        homography: Homography to project with
         conics: Conics to project
 
     Returns:
         Tuple[Conic, ...]: Projected conics
     """
     conic_mats = [conic.M for conic in conics]
-    Hinv = np.linalg.inv(camera.H)
+    Hinv = np.linalg.inv(homography.H)
     projected_conic_mats = Hinv.T @ conic_mats @ Hinv
     return tuple([Conic(M=M) for M in projected_conic_mats])
 
 
 def project_pitch_template(
     pitch_template: PitchTemplate,
-    camera: Camera,
+    homography: Homography,
     image_size: ImageSize,
     frame: Optional[np.ndarray] = None,
     color: Tuple[Any, ...] = Color.RED,
@@ -119,7 +119,7 @@ def project_pitch_template(
     )
 
     # create a chained homography projection that maps from BEV camera -> desired camera homography
-    H_chained = camera.H.dot(K_pitch_image_to_pitch_template)
+    H_chained = homography.H.dot(K_pitch_image_to_pitch_template)
 
     projected_pitch_image = cv2.warpPerspective(
         src=pitch_template_img, M=H_chained, dsize=(image_size.width, image_size.height)

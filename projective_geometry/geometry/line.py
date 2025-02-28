@@ -82,7 +82,7 @@ class Line:
 
         Args:
             other: object to compare against
-            tol: float error tolerance for considering two cameras equal
+            tol: float error tolerance for considering two lines equal
 
         Returns:
             boolean indicating if two objects are equal

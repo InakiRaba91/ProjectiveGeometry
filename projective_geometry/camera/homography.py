@@ -17,7 +17,7 @@ from projective_geometry.image_registration.register import (
 )
 
 
-class Camera:
+class Homography:
     """
     Class responsible for maintaining Homography and associated planar projection functions.
 
@@ -189,7 +189,7 @@ class Camera:
         return np.concatenate(matrices_ellipses, axis=0)
 
     @classmethod
-    def _compute_homography_from_aux_matrix(cls, A: np.ndarray) -> "Camera":
+    def _compute_homography_from_aux_matrix(cls, A: np.ndarray) -> "Homography":
         """
         Method to compute the homography from the auxiliary matrix based on the SVD as explained in
         https://inakiraba91.github.io/projective-geometry-estimating-the-homography-matrix.html
@@ -208,7 +208,7 @@ class Camera:
         return cls(H=H)
 
     @classmethod
-    def from_point_correspondences(cls, pts_source: List[Point], pts_target: List[Point]) -> "Camera":
+    def from_point_correspondences(cls, pts_source: List[Point], pts_target: List[Point]) -> "Homography":
         """
         Method to generate the homography from point correspondences. The method uses the
         SVD as explained in https://inakiraba91.github.io/projective-geometry-estimating-the-homography-matrix.html
@@ -225,7 +225,7 @@ class Camera:
         num_points_source = len(pts_source)
         assert (
             num_points_target >= 4
-        ), f"At least 4 points are required for camera calibration, only {num_points_target} were given"
+        ), f"At least 4 points are required for homography estimation, only {num_points_target} were given"
         assert (
             num_points_target == num_points_source
         ), f"Number of points in source ({num_points_source}) and target ({num_points_target}) must be equal"
@@ -234,7 +234,7 @@ class Camera:
         return cls._compute_homography_from_aux_matrix(A=A)
 
     @classmethod
-    def from_line_correspondences(cls, lines_source: List[Line], lines_target: List[Line]) -> "Camera":
+    def from_line_correspondences(cls, lines_source: List[Line], lines_target: List[Line]) -> "Homography":
         """
         Method to generate the homography from line correspondences. The method uses the
         SVD as explained in https://inakiraba91.github.io/projective-geometry-estimating-the-homography-matrix.html
@@ -251,7 +251,7 @@ class Camera:
         num_lines_source = len(lines_source)
         assert (
             num_lines_target >= 4
-        ), f"At least 4 lines are required for camera calibration, only {num_lines_target} were given"
+        ), f"At least 4 lines are required for homography estimation, only {num_lines_target} were given"
         assert (
             num_lines_target == num_lines_source
         ), f"Number of lines in source ({num_lines_source}) and target ({num_lines_target}) must be equal"
@@ -260,7 +260,7 @@ class Camera:
         return cls._compute_homography_from_aux_matrix(A=A)
 
     @classmethod
-    def from_multiple_ellipse_correspondences(cls, ellipses_source: List[Ellipse], ellipses_target: List[Ellipse]) -> "Camera":
+    def from_multiple_ellipse_correspondences(cls, ellipses_source: List[Ellipse], ellipses_target: List[Ellipse]) -> "Homography":
         """
         Method to generate the homography from point correspondences. The method uses the
         SVD as explained in https://inakiraba91.github.io/projective-geometry-estimating-the-homography-matrix.html
@@ -275,7 +275,7 @@ class Camera:
         # checks
         num_ell_target = len(ellipses_source)
         num_ell_source = len(ellipses_target)
-        assert num_ell_target >= 3, f"At least 3 ellipses are required for camera calibration, only {num_ell_target} were given"
+        assert num_ell_target >= 3, f"At least 3 ellipses are required for homography estimation, only {num_ell_target} were given"
         assert (
             num_ell_target == num_ell_source
         ), f"Number of ellipses in source ({num_ell_source}) and target ({num_ell_target}) must be equal"
@@ -294,7 +294,7 @@ class Camera:
         lines_target: List[Line],
         ellipses_source: List[Ellipse],
         ellipses_target: List[Ellipse],
-    ) -> "Camera":
+    ) -> "Homography":
         """
         Method to generate the homography from geometric correspondences. The method uses the
         SVD as explained in https://inakiraba91.github.io/projective-geometry-estimating-the-homography-matrix.html
@@ -324,7 +324,7 @@ class Camera:
         pts_source: List[Point],
         pts_target: List[Point],
         ransac: bool = False,
-    ) -> "Camera":
+    ) -> "Homography":
         """
         Method to generate the homography from point correspondences. The method uses the cv2.findHomography
         method to retrieve the homography matrix.
@@ -339,7 +339,7 @@ class Camera:
         """
         # checks
         num_points = len(pts_target)
-        assert num_points >= 4, f"At least 4 points are required for camera calibration, only {num_points} were given"
+        assert num_points >= 4, f"At least 4 points are required for homography estimation, only {num_points} were given"
 
         # generate homography using opencv
         # cv2.findHomography requires float32 arrays as arguments
@@ -358,7 +358,7 @@ class Camera:
         return cls(H=homography_matrix)
 
     @classmethod
-    def from_image_registration(cls, target_image: np.ndarray, source_image: np.ndarray) -> Tuple["Camera", MatchedKeypoints]:
+    def from_image_registration(cls, target_image: np.ndarray, source_image: np.ndarray) -> Tuple["Homography", MatchedKeypoints]:
         """Compute homography matrix from image registration
 
         Args:
@@ -389,7 +389,7 @@ class Camera:
         )
 
     @classmethod
-    def from_camera_params(cls, camera_params: CameraParams, image_size: ImageSize) -> "Camera":
+    def from_camera_params(cls, camera_params: CameraParams, image_size: ImageSize) -> "Homography":
         """Build camera components from parameters
         The camera can be shifted to a 3D location [tx, ty, tz], and the image can undergo a 3D rotation.
         The extrinsic matrix E = [R | T] undoes the rotation and shifts everything to the origin of
@@ -407,7 +407,7 @@ class Camera:
             camera_params: CameraParams with 3D location, rotation angles and focal length of the camera
             image_size: ImageSize of the image we're projecting into with the camera
         Returns:
-            Camera from given params
+            Homography from given params
         """
         camera_pose = camera_params.camera_pose
         rot_angles = [camera_pose.roll, camera_pose.tilt, camera_pose.pan]
@@ -424,4 +424,4 @@ class Camera:
         return cls(H=H)
 
     def __repr__(self):
-        return f"Camera(H={self.H})"
+        return f"Homography(H={self.H})"
