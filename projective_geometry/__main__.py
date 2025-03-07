@@ -571,6 +571,19 @@ def homography_from_image_registration(
     target_and_warped_images = cv2.addWeighted(target_image, 1, warped_image, 0.5, 0)
     cv2.imwrite((PROJECT_LOCATION / "results/warped.png").as_posix(), target_and_warped_images)
 
+@cli_app.command()
+def focal_length_from_orthogonal_vanishing_points_demo(image: Path = PROJECT_LOCATION / "results/BasketballCourtCalibration.png"):
+    image = cv2.imread(image.as_posix())
+    width, height = image.shape[1], image.shape[0]
+    vp1 = Point(x=7239.60, y=875.45)
+    vp2 = Point(x=754.46, y=-1758.11)
+    focal_length = (-(vp1.x - width / 2) * (vp2.x - width / 2) - (vp1.y - height / 2) * (vp2.y - height / 2)) ** 0.5
+    print(f"Focal length: {focal_length}")
+    pass
+
+@cli_app.command()
+def intrinsic_from_three_planes():
+    pass
 
 # Program entry point redirection
 if __name__ == "__main__":
