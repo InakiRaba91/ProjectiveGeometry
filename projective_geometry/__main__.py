@@ -652,7 +652,7 @@ def focal_length_from_orthogonal_vanishing_points_demo(image: Path = PROJECT_LOC
     pass
 
 @cli_app.command()
-def intrinsic_from_three_planes(image: Path = PROJECT_LOCATION / "results/SoccerPitchCalibration.png"):
+def intrinsic_from_three_planes_demo(image: Path = PROJECT_LOCATION / "results/SoccerPitchCalibration.png"):
     # ground truth
     f, tx, ty, tz, rx, ry, rz = 4763, -21, -110, 40, 250, 2, 13
     image = cv2.imread(image.as_posix())
