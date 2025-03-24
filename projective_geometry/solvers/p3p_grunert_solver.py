@@ -68,9 +68,3 @@ def p3p_grunert(pts_world: np.ndarray, pts_img_cam: np.ndarray) -> List[CameraPo
         camera_pose = arun_camera_pose(pts_world=pts_world, pts_cam=pts_cam)
         camera_pose_candidates.append(camera_pose)
     return camera_pose_candidates
-    
-if __name__ == "__main__":
-    p1_3d = np.array([-1, 0, 3])
-    p2_3d = np.array([1, 0, 3])
-    p3_3d = np.array([0, -np.sqrt(3), 3])
-    print(p3p_grunert(p1_3d, p2_3d, p3_3d))
