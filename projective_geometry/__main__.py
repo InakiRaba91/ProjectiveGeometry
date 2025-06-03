@@ -19,6 +19,7 @@ from projective_geometry.projection.projectors import (
     project_pitch_template,
 )
 from projective_geometry.utils.distances import FOOT, INCH
+from projective_geometry.visualization.virtual_trajectory import generate_video_virtual_trajectory_camera
 from projective_geometry.visualization.visualizer import show_camera_visualisation
 
 PINHOLE_SVG = Point(x=497.18973, y=33.56244)
@@ -36,7 +37,7 @@ BORDER = 15
 CAMERA_HEIGHT = 2 * IMG_DISPLAY_UNIT
 CAMERA = Camera.from_camera_params(
     camera_params=CameraParams(
-        camera_pose=CameraPose(tx=0, ty=0, tz=CAMERA_HEIGHT, roll=0, tilt=90, pan=0),
+        camera_pose=CameraPose(tx=0, ty=0, tz=CAMERA_HEIGHT, rx=0, ry=90, rz=0),
         focal_length=IMG_DISPLAY_UNIT,
     ),
     image_size=ImageSize(width=IMG_DISPLAY_UNIT, height=IMG_DISPLAY_UNIT),
@@ -743,6 +744,9 @@ def intrinsic_from_three_planes_demo(image: Path = PROJECT_LOCATION / "results/S
 def visualize():
     show_camera_visualisation()
 
+@cli_app.command()
+def virtual_camera_trajectory():
+    generate_video_virtual_trajectory_camera(video_path=PROJECT_LOCATION / "results/virtual_camera_trajectory.mp4")
 
 # Program entry point redirection
 if __name__ == "__main__":
