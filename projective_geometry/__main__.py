@@ -19,6 +19,7 @@ from projective_geometry.projection.projectors import (
     project_pitch_template,
 )
 from projective_geometry.utils.distances import FOOT, INCH
+from projective_geometry.visualization.visualizer import show_camera_visualisation
 
 PINHOLE_SVG = Point(x=497.18973, y=33.56244)
 IMG_SVG_SIZE = ImageSize(width=993.77657, height=287.99746)
@@ -641,6 +642,7 @@ def homography_from_image_registration(
     target_and_warped_images = cv2.addWeighted(target_image, 1, warped_image, 0.5, 0)
     cv2.imwrite((PROJECT_LOCATION / "results/warped.png").as_posix(), target_and_warped_images)
 
+
 @cli_app.command()
 def focal_length_from_orthogonal_vanishing_points_demo(image: Path = PROJECT_LOCATION / "results/BasketballCourtCalibration.png"):
     image = cv2.imread(image.as_posix())
@@ -650,6 +652,7 @@ def focal_length_from_orthogonal_vanishing_points_demo(image: Path = PROJECT_LOC
     focal_length = (-(vp1.x - width / 2) * (vp2.x - width / 2) - (vp1.y - height / 2) * (vp2.y - height / 2)) ** 0.5
     print(f"Focal length: {focal_length}")
     pass
+
 
 @cli_app.command()
 def intrinsic_from_three_planes_demo(image: Path = PROJECT_LOCATION / "results/SoccerPitchCalibration.png"):
@@ -734,6 +737,11 @@ def intrinsic_from_three_planes_demo(image: Path = PROJECT_LOCATION / "results/S
     K_estimate = get_intrinsic_from_2d_homographies(H_planes=H_planes)
     print(f"Ground truth intrinsic matrix: \n{K}")
     print(f"Estimated intrinsic matrix: \n{K_estimate}")
+
+
+@cli_app.command()
+def visualize():
+    show_camera_visualisation()
 
 
 # Program entry point redirection
