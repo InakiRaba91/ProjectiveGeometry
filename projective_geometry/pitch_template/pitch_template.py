@@ -23,6 +23,7 @@ class PitchTemplate(object):
     def __init__(self, pitch_dims: PitchDims):
         self.pitch_dims = pitch_dims
         self.geometric_features = self._geometric_features()
+        self.keypoints = self._keypoints()
 
     def pitch_template_to_pitch_image(
         self,
@@ -136,8 +137,23 @@ class PitchTemplate(object):
             geometric_feature_image.draw(img, color=color_feature, thickness=thickness)
 
         return img
+    
+    def draw_keypoints(
+        self, 
+        image_size: ImageSize = BASE_IMAGE_SIZE,
+        color: Optional[Tuple[Any, ...]] = Color.WHITE,
+        radius: int = 3,
+        thickness: int = -1,
+    ) -> np.ndarray:
+        img = np.zeros((int(image_size.height), int(image_size.width), 3), dtype=np.uint8)
+        for keypoint in self.keypoints:
+            keypoint_image = self.pitch_template_to_pitch_image(
+                geometric_feature=keypoint, image_size=image_size
+            )
+            keypoint_image.draw(img, color=color, radius=radius, thickness=thickness)
+        return img
 
-    def keypoints(self) -> List[Point]:
+    def _keypoints(self) -> List[Point]:
         """Computes all geometric relevant keypoints identifiable in the template, which are usually defined as
         the intersections between the different geometric features
 

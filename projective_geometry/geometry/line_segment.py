@@ -108,6 +108,15 @@ class LineSegment:
             pt2=Point(x=self.pt2.x * scale_x, y=self.pt2.y * scale_y),
         )
 
+    def keypoints(self, distance: float = 0.1) -> list[Point]:
+        """Generates a list of keypoints along the line segment"""
+        num_points = int(self.length() / distance) + 1
+        dx = (self.pt2.x - self.pt1.x) / num_points
+        dy = (self.pt2.y - self.pt1.y) / num_points
+        return [
+            Point(x=self.pt1.x + i * dx, y=self.pt1.y + i * dy) for i in range(num_points + 1)
+        ]
+
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, thickness: int = 3):
         """Draws the segment within the given image in-place
 
