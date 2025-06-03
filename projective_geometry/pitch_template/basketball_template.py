@@ -42,6 +42,12 @@ class BasketballCourtTemplate(PitchTemplate):
         self.curved_lines = self._curved_lines()
         return self.line_segments + self.curved_lines
 
+    def _keypoints(self):
+        keypoints = []
+        for geometric_feature in self.geometric_features:
+            keypoints += geometric_feature.keypoints()
+        return keypoints
+
     def _line_segments(self) -> Tuple[LineSegment]:
         """Compute all line segments corresponding to pitch markings and sets them as attribute
 
