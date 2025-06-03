@@ -15,6 +15,7 @@ from projective_geometry.image_registration.register import (
     ImageRegistrator,
     MatchedKeypoints,
 )
+from projective_geometry.utils.rotation import rotation_matrix_from_angles
 
 
 class Camera:
@@ -410,10 +411,11 @@ class Camera:
             Camera from given params
         """
         camera_pose = camera_params.camera_pose
-        rot_angles = [camera_pose.roll, camera_pose.tilt, camera_pose.pan]
-        Rc = Rotation.from_euler("xyz", rot_angles, degrees=True).as_matrix()
+        tx, ty, tz = camera_pose.tx, camera_pose.ty, camera_pose.tz
+        rx, ry, rz = camera_pose.rx, camera_pose.ry, camera_pose.rz
+        Rc = rotation_matrix_from_angles(rx=rx, ry=ry, rz=rz)
         R = Rc.T  # transpose
-        t = np.array([[camera_pose.tx], [camera_pose.ty], [camera_pose.tz]])
+        t = np.array([[tx], [ty], [tz]])
         T = -Rc.T.dot(t)
         K = cls.intrinsic_matrix_from_focal_length(focal_length=camera_params.focal_length, image_size=image_size)
         E = np.concatenate((R, T), axis=1)
