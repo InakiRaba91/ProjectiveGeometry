@@ -142,8 +142,16 @@ $$
 
 ### Unit aspect ratio
 We have the condition $w_0 = w_1$, so our second row in A will be:
+<p align="center">
+  <img src="condition2.png" alt="alt text">
+</p>
+
 $$
-a_2 = [\, 1,\ -1,\ 0,\ 0,\ 0,\ 0 \,]
+\begin{equation}
+a_2 = \begin{bmatrix}
+1 & -1 & 0 & 0 & 0 & 0 \\
+\end{bmatrix}
+\end{equation}
 $$
 
 ### Principal point at the center of the image
