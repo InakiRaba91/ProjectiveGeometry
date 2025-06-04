@@ -135,7 +135,7 @@ From our previous table, we have the condition $w_2 = 0$, so our first row in A 
 $$
 \begin{equation}
 a_1 = \begin{bmatrix}
-0 & 0 & 1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 & 0 & 0 \\
 \end{bmatrix}
 \end{equation}
 $$
