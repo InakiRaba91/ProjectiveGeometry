@@ -20,7 +20,10 @@ def calculate_focal_length_from_homography(
     2. Second row: zero skew
     3. Third row: principal point at the center of the image sensor
     4. Fourth row: vanishing points for horizontal and vertical sets of lines
+    5. Fifth row: vanishing points for 45º/135º lines
 
+    Note: check README for more details on the derivation of the equations.
+    
     Parameters
     ----------
     camera
