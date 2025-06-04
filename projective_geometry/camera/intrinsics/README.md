@@ -256,12 +256,9 @@ $$
 $$
 
 This gives us the fourth row in A:
+
 $$
-\begin{equation}
-a_4 = \begin{bmatrix}
-h_0 h_1 & h_3 h_1 + h_0 h_4 & h_3 h_4 & h_6 h_1 + h_0 h_7 & h_6 h_4 + h_3 h_7 & h_6 h_7 \\
-\end{bmatrix}
-\end{equation}
+a_4 = [\, h_0 h_1,\ h_3 h_1 + h_0 h_4,\ h_3 h_4,\ h_6 h_1 + h_0 h_7,\ h_6 h_4 + h_3 h_7,\ h_6 h_7 \,]
 $$
 
 ### Vanishing point for 45º/135º lines
@@ -306,16 +303,14 @@ $$
 
 This gives us the fifth row in A:
 $$
-\begin{equation}    
-a_5 = \begin{bmatrix}
-h_0^2 - h_1^2 \\ 
-2 (h_0 h_3 - h_1 h_4) \\ 
-h_3^2 - h_4^2 \\
-2 (h_0 h_6 - h_1 h_7) \\
-2 (h_3 h_6 - h_4 h_7) \\
-h_6^2 - h_7^2
-\end{bmatrix}^T
-\end{equation}
+a_5 = [
+    h_0^2 - h_1^2,\ 
+    2 (h_0 h_3 - h_1 h_4),\ 
+    h_3^2 - h_4^2,\ 
+    2 (h_0 h_6 - h_1 h_7),\ 
+    2 (h_3 h_6 - h_4 h_7),\ 
+    h_6^2 - h_7^2
+]
 $$
 
 
