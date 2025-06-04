@@ -284,7 +284,10 @@ h_0 - h_1 \\\\ h_3 - h_4 \\\\ h_6 - h_7
 $$ -->
 
 which reduces to:
-$$
+<p align="center">
+  <img src="system3.png" alt="alt text">
+</p>
+<!-- $$
 \begin{equation}
 \begin{split}
 0 & = (h_0^2 -h_1^2) w_0 \\
@@ -295,10 +298,13 @@ $$
 & + (h_6^2 - h_7^2) w_5
 \end{split}
 \end{equation}
-$$
+$$ -->
 
 This gives us the fifth row in A:
-$$
+<p align="center">
+  <img src="condition5.png" alt="alt text">
+</p>
+<!-- $$
 a_5 = [
     h_0^2 - h_1^2,\ 
     2 (h_0 h_3 - h_1 h_4),\ 
@@ -307,7 +313,7 @@ a_5 = [
     2 (h_3 h_6 - h_4 h_7),\ 
     h_6^2 - h_7^2
 ]
-$$
+$$ -->
 
 
 ## References
