@@ -9,9 +9,9 @@ We rely on the image of the absolute conic $\omega$, which is a symmetric matrix
 $$
 \begin{equation}
 \omega = \begin{bmatrix}
+w_0 & w_1 & w_3 \\\\
 w_1 & w_2 & w_4 \\\\
-w_2 & w_3 & w_5 \\\\
-w_4 & w_5 & w_6
+w_3 & w_4 & w_5
 \end{bmatrix}
 \end{equation}
 $$
@@ -130,7 +130,7 @@ The conditions we impose are:
 
 ### No skew
 
-From our previous table, we have the condition $w_2 = 0$, so our first row in A will be:
+From our previous table, we have the condition $w_1 = 0$, so our first row in A will be:
 
 $$
 \begin{equation}
@@ -141,14 +141,22 @@ a_1 = \begin{bmatrix}
 $$
 
 ### Unit aspect ratio
-We have the condition $w_0 = w_1$, so our second row in A will be:
+We have the condition $w_0 = w_2$, so our second row in A will be:
 <p align="center">
   <img src="condition2.png" alt="alt text">
 </p>
+![alt text](image.png)
+
+Notice from Eq.(8) that
+$$
+w_0 = \frac{1}{f_x^2}, \quad w_2 = \frac{1}{f_y^2}
+$$  
+so we are effectively imposing $f_x = f_y = f$, which is the unit aspect ratio condition.
+
 <!-- $$
 \begin{equation}
 a_2 = \begin{bmatrix}
-1 & -1 & 0 & 0 & 0 & 0 \\
+1 & 0 & -1 & 0 & 0 & 0 \\
 \end{bmatrix}
 \end{equation}
 $$ -->
@@ -160,7 +168,7 @@ principal point $(c_x, c_y)$ of the camera.
 
 $$
 \begin{equation}
-w_3 = -\frac{c_x}{f_x^2}, \quad w_4 = -\frac{c_y}{f_y^2}
+w_3 = -\frac{c_x}{f^2}, \quad w_4 = -\frac{c_y}{f^2}
 \end{equation}
 $$
 
