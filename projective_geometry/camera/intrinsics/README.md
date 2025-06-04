@@ -173,13 +173,16 @@ $$
 $$
 
 which leads to the third row in A:
-$$
+<p align="center">
+  <img src="condition3.png" alt="alt text">
+</p>
+<!-- $$
 \begin{equation}
 a_3 = \begin{bmatrix}
 0 & 0 & 0 & \frac{c_y}{c_x} & -1 & 0
 \end{bmatrix}
 \end{equation}
-$$
+$$ -->
 
 ### Vanishing points for horizontal and vertical lines
 
@@ -213,7 +216,10 @@ v_1^T \cdot \omega \cdot v_2 = 0
 $$
 
 Substituting the values of $v_1$ and $v_2$ we get:
-$$
+<p align="center">
+  <img src="system1.png" alt="alt text">
+</p>
+<!-- $$
 \begin{equation}
 \begin{bmatrix}
 h_0 & h_3 & h_6
@@ -225,7 +231,7 @@ w_3 & w_4 & w_5
 h_1 \\\\ h_4 \\\\ h_7
 \end{bmatrix} = 0
 \end{equation}
-$$
+$$ -->
 
 which reduces to:
 
@@ -245,7 +251,7 @@ $$
 This gives us the fourth row in A:
 
 $$
-a_4 = [\, h_0 h_1,\ h_3 h_1 + h_0 h_4,\ h_3 h_4,\ h_6 h_1 + h_0 h_7,\ h_6 h_4 + h_3 h_7,\ h_6 h_7 \,]
+a_4 = [h_0 h_1,\ h_3 h_1 + h_0 h_4,\ h_3 h_4,\ h_6 h_1 + h_0 h_7,\ h_6 h_4 + h_3 h_7,\ h_6 h_7 \,]
 $$
 
 ### Vanishing point for 45º/135º lines
