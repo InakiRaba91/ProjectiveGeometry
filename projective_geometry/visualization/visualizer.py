@@ -15,6 +15,11 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from projective_geometry.camera.camera import Camera
+from projective_geometry.camera.camera_params import CameraParams
+from projective_geometry.camera.camera_pose import CameraPose
+from projective_geometry.draw.image_size import ImageSize
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -111,6 +116,13 @@ class CameraVisualiser(QMainWindow):
         T = np.array([[tx], [ty], [tz]])
         E = np.concatenate((R.T, -R.T.dot(T)), axis=1)
         H = K.dot(E)
+        # H = Camera.from_camera_params(
+        #     camera_params=CameraParams(
+        #         camera_pose=CameraPose(tx=tx, ty=ty, tz=tz, rx=rx, ry=ry, rz=rz),
+        #         focal_length=f,
+        #     ),
+        #     image_size=ImageSize(width=self.frame_width, height=self.frame_height),
+        # )
         K_pitch_image_to_pitch_template = np.array(
             [
                 [self.pitch_width / self.frame_width, 0, 0, -self.pitch_width / 2.0],
