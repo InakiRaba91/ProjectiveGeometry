@@ -28,14 +28,7 @@ so once we obtain $\omega$, we can compute the camera intrinsic matrix $K$ from 
 
 There are several constraints that can be imposed on it:
 
-<style>
-table th:first-of-type {
-    width: 45%;
-}
-table th:nth-of-type(2) {
-    width: 55%;
-}
-</style>
+
 | Condition | Constraint |
 | --- | --- |
 | Vanishing points $v1$ and $v2$ from perpendicular rays| $v_1^T\cdot \omega \cdot v_2 = 0$ |
@@ -46,16 +39,7 @@ table th:nth-of-type(2) {
 | Unit aspect ratio | $\omega_{11} = \omega_{22}$ |
 
 Since $\omega$ is a symmetric matrix, we have 6 unknowns to find. We therefore need at least 6 constraints to solve for it. The process of calibrating the camera would look something like:
-1. Parametrize $\omega$ as a vector $w=[w_0, w_1, w_2, w_3, w_4, w_5]^T$, where
-$$
-\begin{equation}
-\omega = \begin{bmatrix}
-w_0 & w_1 & w_3 \\\\
-w_1 & w_2 & w_4 \\\\
-w_3 & w_4 & w_5
-\end{bmatrix}
-\end{equation}
-$$
+1. Parametrize $\omega$ as a vector $w=[w_0, w_1, w_2, w_3, w_4, w_5]^T$
 2. Find $n$ constraints from the relationships above and write them in the form $a_i^T\cdot w = 0$.
 3. Stack the constraints in a matrix $A$ to form a linear system of equations $Aw=0$.
 4. Solve the system using the SVD decomposition to find the null space of $A$.
@@ -159,11 +143,7 @@ $$
 ### Unit aspect ratio
 We have the condition $w_0 = w_1$, so our second row in A will be:
 $$
-\begin{equation}
-a_2 = \begin{bmatrix}
-1 & -1 & 0 & 0 & 0 & 0 \\
-\end{bmatrix}
-\end{equation}
+a_2 = [1,\ -1,\ 0,\ 0,\ 0,\ 0]
 $$
 
 ### Principal point at the center of the image
@@ -187,11 +167,7 @@ $$
 
 which leads to the third row in A:
 $$
-\begin{equation}
-a_3 = \begin{bmatrix}
-0 & 0 & 0 & \frac{c_y}{c_x} & -1 & 0 \\
-\end{bmatrix}
-\end{equation}
+a_3 = [0,\ 0,\ 0,\  \frac{c_y}{c_x},\ -1,\ 0]
 $$
 
 ### Vanishing points for horizontal and vertical lines
