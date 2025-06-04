@@ -266,7 +266,10 @@ It would not be rare to observe that some set of parallel lines remain parallel 
    - $v_4 = [h_0 - h_1, h_3 - h_4, h_6 - h_7]$
 
 Replacing on the condition for vanishing points from perpendicular rays, we get:
-$$
+<p align="center">
+  <img src="system2.png" alt="alt text">
+</p>
+<!-- $$
 \begin{equation}
 \begin{bmatrix}
 h_0 + h_1 & h_3 + h_4 & h_6 + h_7
@@ -278,7 +281,7 @@ w_3 & w_4 & w_5
 h_0 - h_1 \\\\ h_3 - h_4 \\\\ h_6 - h_7
 \end{bmatrix} = 0
 \end{equation}
-$$
+$$ -->
 
 which reduces to:
 $$
