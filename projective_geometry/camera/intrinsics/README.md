@@ -143,7 +143,7 @@ $$
 ### Unit aspect ratio
 We have the condition $w_0 = w_1$, so our second row in A will be:
 $$
-a_2 = [,\ 1,\ -1,\ 0,\ 0,\ 0,\ 0]
+a_2 = [\, 1,\ -1,\ 0,\ 0,\ 0,\ 0 \,]
 $$
 
 ### Principal point at the center of the image
