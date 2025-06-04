@@ -142,10 +142,6 @@ $$
 
 ### Unit aspect ratio
 We have the condition $w_0 = w_1$, so our second row in A will be:
-<p align="center">
-  <img src="condition2.png" alt="alt text">
-</p>
-
 $$
 \begin{equation}
 a_2 = \begin{bmatrix}
@@ -175,7 +171,11 @@ $$
 
 which leads to the third row in A:
 $$
-a_3 = [0,\ 0,\ 0,\  \frac{c_y}{c_x},\ -1,\ 0]
+\begin{equation}
+a_3 = \begin{bmatrix}
+0 & 0 & 0 & \frac{c_y}{c_x} & -1 & 0
+\end{bmatrix}
+\end{equation}
 $$
 
 ### Vanishing points for horizontal and vertical lines
