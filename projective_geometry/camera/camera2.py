@@ -1,38 +1,37 @@
 from __future__ import annotations
 
-from typing import List, Self
+from typing import Self, Tuple
 
 import numpy as np
 
 from projective_geometry.camera.camera_distortion import CameraDistortion
-from projective_geometry.camera.camera_params import CameraParams
+from projective_geometry.camera.camera_params import CameraParams2
 from projective_geometry.camera.camera_pose import CameraPose
 from projective_geometry.camera.geometry import (
-    Vector2D,
     calculate_camera_pose_and_distortion,
     calculate_focal_length_from_homography,
     calculate_homography,
     convert_intrinsics_to_calibration_matrix,
     rotation_matrix_to_roll_tilt_pan,
 )
-from projective_geometry.geometry.point import Point2D
+from projective_geometry.geometry.point import Point2D, Point3D
 
 
 class Camera2:
     """Simple class to represent a camera"""
 
-    def __init__(self, sensor_wh: tuple[int, int] | Vector2D, camera_params: CameraParams) -> None:
+    def __init__(self, sensor_wh: tuple[int, int], camera_params: CameraParams2) -> None:
         self.sensor_wh = np.asarray(sensor_wh)
-        """Width and height of the camera sensor in pixels"""
+        """Height and width of the camera sensor in pixels"""
         self.camera_params = camera_params
         """Camera parameters including camera pose, distortion coefficients and focal length"""
 
     @classmethod
     def from_keypoint_correspondences(
         cls,
-        world_points: List[Point2D],
-        image_points: List[Point2D],
-        sensor_wh: Vector2D,
+        world_points: Tuple[Point3D, ...],
+        image_points: Tuple[Point2D, ...],
+        sensor_wh: Tuple[int, int],
     ) -> Self:
         """Create a Camera object from keypoint correspondences and sensor size.
 
@@ -47,7 +46,7 @@ class Camera2:
         image_points
             The image points.
         sensor_wh
-            The sensor width and height of the camera, i.e., the camera's resolution.
+            The sensor height and width of the camera, i.e., the camera's resolution.
 
         Returns
         -------
@@ -60,13 +59,14 @@ class Camera2:
         world_points_arr = world_points_arr.astype(np.float32)
         image_points_arr = image_points_arr.astype(np.float32)
 
-        homography_matrix = calculate_homography(world_points_arr, image_points_arr, alpha=1.0)
+        homography_matrix = calculate_homography(world_points_arr, image_points_arr, alpha=0)
         success, focal_length_xy = calculate_focal_length_from_homography(homography_matrix, sensor_wh)
         if not success:
             msg = "Failed to estimate focal length automatically."
             raise ValueError(msg)
 
-        calibration_matrix = convert_intrinsics_to_calibration_matrix(sensor_wh, focal_length_xy)
+        calibration_matrix = convert_intrinsics_to_calibration_matrix(np.asarray(sensor_wh), focal_length_xy)
+
         rotation_matrix, position_xyz, distortion_coefficients = calculate_camera_pose_and_distortion(
             world_points_arr,
             image_points_arr,
@@ -77,7 +77,7 @@ class Camera2:
 
         return cls(
             sensor_wh=sensor_wh,
-            camera_params=CameraParams(
+            camera_params=CameraParams2(
                 camera_pose=CameraPose(
                     tx=position_xyz[0],
                     ty=position_xyz[1],
@@ -93,9 +93,9 @@ class Camera2:
                     p2=distortion_coefficients[3],
                     k3=distortion_coefficients[4],
                 ),
-                focal_length=focal_length_xy[0],
+                focal_length_xy=focal_length_xy,
             ),
         )
 
     def __repr__(self):
-        return f"Camera(H={self.H})"
+        return f"Camera(sensor_wh={self.sensor_wh}, camera_params={str(self.camera_params)})"

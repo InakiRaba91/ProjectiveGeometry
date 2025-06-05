@@ -60,4 +60,4 @@ class CameraPose:
         return False
 
     def __repr__(self):
-        return f"CameraPose(tx={self.tx}, ty={self.ty}, tz={self.tz}, tilt={self.tilt}, pan={self.pan}, roll={self.roll})"
+        return f"CameraPose(tx={np.round(self.tx, 4)}, ty={np.round(self.ty, 4)}, tz={np.round(self.tz, 4)}, tilt={np.round(self.tilt,4)}, pan={np.round(self.pan, 4)}, roll={np.round(self.roll, 4)})"

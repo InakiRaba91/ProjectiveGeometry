@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import TypeAlias
 import logging
+from typing import TypeAlias
 
 import cv2
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -30,21 +28,18 @@ DistortionCoefficients: TypeAlias = np.ndarray
 """Distortion coefficients, 1D array of coefficients for lens distortion."""
 
 
-
 def rotation_matrix_to_roll_tilt_pan(R_mat: RotationMatrix3D) -> tuple[float, float, float]:
     r = R.from_matrix(R_mat)
-    roll, tilt, pan = r.as_euler('zyx', degrees=True)
+    roll, tilt, pan = r.as_euler("zyx", degrees=True)
     return roll, tilt, pan
 
 
 def roll_tilt_pan_to_rotation_matrix(roll: float, tilt: float, pan: float) -> RotationMatrix3D:
-    r = R.from_euler('zyx', [roll, tilt, pan], degrees=True)
+    r = R.from_euler("zyx", [roll, tilt, pan], degrees=True)
     return r.as_matrix()
 
 
-def calculate_homography(
-    world_points: KeyPoints2D, image_points: KeyPoints2D, alpha: float = 0.5
-) -> HomographyMatrix:
+def calculate_homography(world_points: KeyPoints2D, image_points: KeyPoints2D, alpha: float = 0.5) -> HomographyMatrix:
     """Calculate the homography matrix between the source and destination points.
 
     Parameters
@@ -70,9 +65,9 @@ def calculate_homography(
         return cv2.findHomography(world_points, image_points)[0]  # type: ignore[return-value]
     if alpha == 0:
         return np.linalg.inv(cv2.findHomography(image_points, world_points)[0])
-    return alpha * cv2.findHomography(world_points, image_points)[0] + (
-        1 - alpha
-    ) * np.linalg.inv(cv2.findHomography(image_points, world_points)[0])
+    return alpha * cv2.findHomography(world_points, image_points)[0] + (1 - alpha) * np.linalg.inv(
+        cv2.findHomography(image_points, world_points)[0]
+    )
 
 
 def calculate_focal_length_from_homography(
@@ -150,7 +145,6 @@ def calculate_focal_length_from_homography(
     return True, focal_length_xy
 
 
-
 def convert_calibration_matrix_to_intrinsics(
     calibration_matrix: CalibrationMatrix,
 ) -> tuple[Vector2D, Vector2D]:
@@ -173,9 +167,7 @@ def convert_calibration_matrix_to_intrinsics(
     return sensor_wh, focal_length_xy
 
 
-def convert_intrinsics_to_calibration_matrix(
-    sensor_wh: Vector2D, focal_length_xy: float | Vector2D 
-) -> CalibrationMatrix:
+def convert_intrinsics_to_calibration_matrix(sensor_wh: Vector2D, focal_length_xy: float | Vector2D) -> CalibrationMatrix:
     """Calculate the calibration matrix from intrinsics.
 
     Parameters
@@ -201,9 +193,7 @@ def convert_intrinsics_to_calibration_matrix(
     )
 
 
-def convert_rvec_tvec_to_camera_pose(
-    rvec: Vector3D, tvec: Vector3D
-) -> tuple[RotationMatrix3D, Vector3D]:
+def convert_rvec_tvec_to_camera_pose(rvec: Vector3D, tvec: Vector3D) -> tuple[RotationMatrix3D, Vector3D]:
     """Convert rvec (rotation vector) and tvec (translation vector) to a camera pose.
 
     Parameters
@@ -220,7 +210,7 @@ def convert_rvec_tvec_to_camera_pose(
     position_xyz
         The position of the camera in the world.
     """
-    rotation_matrix: RotationMatrix3D = cv2.Rodrigues(np.asarray(rvec))[0] # type: ignore[return-value]
+    rotation_matrix: RotationMatrix3D = cv2.Rodrigues(np.asarray(rvec))[0]  # type: ignore[return-value]
     position_xyz = -rotation_matrix.T @ np.asarray(tvec).flatten()
     return rotation_matrix, position_xyz
 
@@ -281,4 +271,4 @@ def calculate_camera_pose_and_distortion(
 
     logger.info(f"Root Mean Squared Re-Projection Error: {rmsre}")
     assert isinstance(distortion_coefficients, np.ndarray)
-    return rotation_matrix, position_xyz, distortion_coefficients
+    return rotation_matrix, position_xyz, distortion_coefficients[0]

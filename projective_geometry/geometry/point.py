@@ -457,6 +457,7 @@ class Point3D:
         x, y, z = pt_homogeneous[:3] / pt_homogeneous[3]
         return cls(x=x, y=y, z=z)
 
+    # FIXME: This is a quick hack!
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, radius: int = 3, thickness: int = 3):
         """Draws the point as a circle within the given image in-place
 
@@ -471,4 +472,10 @@ class Point3D:
 
         Returns: None
         """
-        raise NotImplementedError
+        cv2.circle(
+            img=img,
+            center=(round(self.x), round(self.y)),
+            color=color,
+            radius=radius,
+            thickness=thickness,
+        )

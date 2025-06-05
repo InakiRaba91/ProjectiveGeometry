@@ -191,7 +191,7 @@ def project_to_sensor(camera: Camera2, world_points: Tuple[Point3D, ...]) -> Tup
     positions_xyz = camera.camera_params.camera_pose.postion_xyz
     rotation_matrix = camera.camera_params.camera_pose.rotation_matrix
     distortion_coefficients = camera.camera_params.camera_distorion.to_array()
-    focal_length = camera.camera_params.focal_length
+    focal_length_xy = camera.camera_params.focal_length_xy
     sensor_wh = camera.sensor_wh
     principal_point = np.array([sensor_wh[0] / 2, sensor_wh[1] / 2])
 
@@ -212,8 +212,8 @@ def project_to_sensor(camera: Camera2, world_points: Tuple[Point3D, ...]) -> Tup
 
     distorted_points = _distort(normalized_camera_points, distortion_coefficients)
 
-    x = distorted_points[..., 0] * (focal_length * sensor_wh[0]) + principal_point[0]
-    y = distorted_points[..., 1] * (focal_length * sensor_wh[1]) + principal_point[1]
+    x = distorted_points[..., 0] * (focal_length_xy[0] * sensor_wh[0]) + principal_point[0]
+    y = distorted_points[..., 1] * (focal_length_xy[1] * sensor_wh[1]) + principal_point[1]
     image_points = np.c_[x, y]
 
     return tuple(Point2D.from_array(pt) for pt in image_points)
@@ -266,9 +266,9 @@ def project_to_world(camera: Camera2, image_points: Tuple[Point2D, ...], z_plane
     position_xyz = camera.camera_params.camera_pose.postion_xyz
     rotation_matrix = camera.camera_params.camera_pose.rotation_matrix
     distortion_coefficients = camera.camera_params.camera_distorion.to_array()
-    focal_length = camera.camera_params.focal_length
+    focal_length_xy = camera.camera_params.focal_length_xy
     sensor_wh = camera.sensor_wh
-    calibration_matrix = convert_intrinsics_to_calibration_matrix(sensor_wh, focal_length)
+    calibration_matrix = convert_intrinsics_to_calibration_matrix(sensor_wh, focal_length_xy)
 
     image_points_arr = np.array([pt.to_array() for pt in image_points])
 
