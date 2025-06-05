@@ -411,11 +411,10 @@ class Camera:
             Camera from given params
         """
         camera_pose = camera_params.camera_pose
-        tx, ty, tz = camera_pose.tx, camera_pose.ty, camera_pose.tz
-        rx, ry, rz = camera_pose.rx, camera_pose.ry, camera_pose.rz
-        Rc = rotation_matrix_from_angles(rx=rx, ry=ry, rz=rz)
+        rot_angles = [camera_pose.roll, camera_pose.tilt, camera_pose.pan]
+        Rc = Rotation.from_euler("xyz", rot_angles, degrees=True).as_matrix()
         R = Rc.T  # transpose
-        t = np.array([[tx], [ty], [tz]])
+        t = np.array([[camera_pose.tx], [camera_pose.ty], [camera_pose.tz]])
         T = -Rc.T.dot(t)
         K = cls.intrinsic_matrix_from_focal_length(focal_length=camera_params.focal_length, image_size=image_size)
         E = np.concatenate((R, T), axis=1)

@@ -153,7 +153,7 @@ class PitchTemplate(object):
             keypoint_image.draw(img, color=color, radius=radius, thickness=thickness)
         return img
 
-    def _keypoints(self) -> List[Point]:
+    def _keypoints(self) -> List[Point2D]:
         """Computes all geometric relevant keypoints identifiable in the template, which are usually defined as
         the intersections between the different geometric features
 

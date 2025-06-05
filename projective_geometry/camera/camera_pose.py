@@ -19,20 +19,20 @@ class CameraPose:
         rz: rotation around z-axis
     """        
 
-    def __init__(self, tx: float, ty: float, tz: float, rx: float, ry: float, rz: float):
+    def __init__(self, tx: float, ty: float, tz: float, roll: float, tilt: float, pan: float):
         self.tx = tx
         self.ty = ty
         self.tz = tz
-        self.rx = rx
-        self.ry = ry
-        self.rz = rz
+        self.roll = roll
+        self.tilt = tilt
+        self.pan = pan
 
     def to_array(self) -> np.ndarray:
         """Converts to numpy array
         Returns:
             ndarray  [tx, ty, tz, rx, ry, rz]
         """
-        return np.array([self.tx, self.ty, self.tz, self.rx, self.ry, self.rz])
+        return np.array([self.tx, self.ty, self.tz, self.roll, self.tilt, self.pan])
 
     @property
     def postion_xyz(self) -> np.ndarray:
@@ -60,4 +60,4 @@ class CameraPose:
         return False
 
     def __repr__(self):
-        return f"CameraPose(tx={self.tx}, ty={self.ty}, tz={self.tz}, rx={self.rx}, ry={self.ry}, rz={self.rz})"
+        return f"CameraPose(tx={self.tx}, ty={self.ty}, tz={self.tz}, roll={self.roll}, tilt={self.tilt}, pan={self.pan})"

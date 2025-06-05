@@ -35,7 +35,7 @@ def generate_video_virtual_trajectory_camera(video_path: str):
         frame = np.zeros((image_size.height, image_size.width, 3), dtype=np.uint8)
         camera = Camera.from_camera_params(
             camera_params=CameraParams(
-                camera_pose=CameraPose(tx=tx, ty=ty, tz=tz, rx=rx, ry=ry, rz=rz),
+                camera_pose=CameraPose(tx=tx, ty=ty, tz=tz, roll=rx, tilt=ry, pan=rz),
                 focal_length=f,
             ),
             image_size=image_size,

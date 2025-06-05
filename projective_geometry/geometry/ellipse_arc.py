@@ -186,7 +186,7 @@ class EllipseArc:
     def __repr__(self):
         return f"EllipseArc(ellipse={str(self.ellipse)}, line={str(self.line)})"
 
-    def keypoints(self, num_points: int = 100) -> List[Point]:
+    def keypoints(self, num_points: int = 100) -> List[Point2D]:
         """Generates a list of points in the ellipse
 
         Args:

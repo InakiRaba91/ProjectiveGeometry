@@ -317,7 +317,7 @@ class Ellipse:
     def __repr__(self):
         return f"Ellipse(center={self.center}, axes={self.axes}, angle={self.angle})"
 
-    def keypoints(self, num_points: int = 100) -> List[Point]:
+    def keypoints(self, num_points: int = 100) -> List[Point2D]:
         """Generates a list of points in the ellipse
 
         Args:

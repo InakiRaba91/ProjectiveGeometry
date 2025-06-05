@@ -40,7 +40,7 @@ BORDER = 15
 CAMERA_HEIGHT = 2 * IMG_DISPLAY_UNIT
 CAMERA = Camera.from_camera_params(
     camera_params=CameraParams(
-        camera_pose=CameraPose(tx=0, ty=0, tz=CAMERA_HEIGHT, rx=0, ry=90, rz=0),
+        camera_pose=CameraPose(tx=0, ty=0, tz=CAMERA_HEIGHT, roll=0, tilt=90, pan=0),
         focal_length=IMG_DISPLAY_UNIT,
     ),
     image_size=ImageSize(width=IMG_DISPLAY_UNIT, height=IMG_DISPLAY_UNIT),

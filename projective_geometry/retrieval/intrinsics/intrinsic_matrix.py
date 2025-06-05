@@ -1,7 +1,7 @@
 import numpy as np
 from projective_geometry.camera.camera import Camera
 from projective_geometry.draw.image_size import ImageSize
-from projective_geometry.geometry.point import Point
+from projective_geometry.geometry.point import Point2D
 
 
 def calculate_focal_length_from_homography(
@@ -38,7 +38,7 @@ def calculate_focal_length_from_homography(
     focal_length_xy
         The estimated focal length.
     """
-    principal_point = Point(x=image_size.width / 2, y=image_size.height / 2)
+    principal_point = Point2D(x=image_size.width / 2, y=image_size.height / 2)
 
     H = np.reshape(camera.H, (9,))
     A = np.zeros((5, 6))
