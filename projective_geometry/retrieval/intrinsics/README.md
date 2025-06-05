@@ -145,7 +145,6 @@ We have the condition $w_0 = w_2$, so our second row in A will be:
 <p align="center">
   <img src="condition2.png" alt="alt text">
 </p>
-![alt text](image.png)
 
 Notice from Eq.(8) that
 $$
