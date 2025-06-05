@@ -22,6 +22,8 @@ from projective_geometry.projection.projectors import (
     project_to_world,
 )
 from projective_geometry.utils.distances import FOOT, INCH
+from projective_geometry.visualization.virtual_trajectory import generate_video_virtual_trajectory_camera
+from projective_geometry.visualization.visualizer import show_camera_visualisation
 
 PINHOLE_SVG = Point2D(x=497.18973, y=33.56244)
 IMG_SVG_SIZE = ImageSize(width=993.77657, height=287.99746)
@@ -38,7 +40,7 @@ BORDER = 15
 CAMERA_HEIGHT = 2 * IMG_DISPLAY_UNIT
 CAMERA = Camera.from_camera_params(
     camera_params=CameraParams(
-        camera_pose=CameraPose(tx=0, ty=0, tz=CAMERA_HEIGHT, roll=0, tilt=90, pan=0),
+        camera_pose=CameraPose(tx=0, ty=0, tz=CAMERA_HEIGHT, rx=0, ry=90, rz=0),
         focal_length=IMG_DISPLAY_UNIT,
     ),
     image_size=ImageSize(width=IMG_DISPLAY_UNIT, height=IMG_DISPLAY_UNIT),
@@ -647,6 +649,17 @@ def homography_from_image_registration(
 
 
 @cli_app.command()
+def focal_length_from_orthogonal_vanishing_points_demo(image: Path = PROJECT_LOCATION / "results/BasketballCourtCalibration.png"):
+    image = cv2.imread(image.as_posix())
+    width, height = image.shape[1], image.shape[0]
+    vp1 = Point2D(x=7239.60, y=875.45)
+    vp2 = Point2D(x=754.46, y=-1758.11)
+    focal_length = (-(vp1.x - width / 2) * (vp2.x - width / 2) - (vp1.y - height / 2) * (vp2.y - height / 2)) ** 0.5
+    print(f"Focal length: {focal_length}")
+    pass
+
+
+@cli_app.command()
 def focal_length_from_orthogonal_vanishing_points_demo(
     image_path: Path = PROJECT_LOCATION / "results/BasketballCourtCalibration.png",
 ):
@@ -892,6 +905,12 @@ def camera_retrieval_test(output: Path = PROJECT_LOCATION / "results/celtics_ret
     cv2.imwrite(output.as_posix(), np.concatenate((frame, basketball_court_img), axis=1))
 
 
+def visualize():
+    show_camera_visualisation()
+
+@cli_app.command()
+def virtual_camera_trajectory():
+    generate_video_virtual_trajectory_camera(video_path=PROJECT_LOCATION / "results/virtual_camera_trajectory.mp4")
 
 # Program entry point redirection
 if __name__ == "__main__":

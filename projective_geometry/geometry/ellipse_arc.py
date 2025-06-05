@@ -186,6 +186,20 @@ class EllipseArc:
     def __repr__(self):
         return f"EllipseArc(ellipse={str(self.ellipse)}, line={str(self.line)})"
 
+    def keypoints(self, num_points: int = 100) -> List[Point]:
+        """Generates a list of points in the ellipse
+
+        Args:
+            num_points: int number of points to generate in the ellipse
+
+        Returns:
+            List of points in the ellipse
+        """
+        return [
+            self.ellipse.ellipse_point_from_circle_angle(gamma=gamma)
+            for gamma in np.linspace(self.start_angle, self.end_angle, num=num_points, endpoint=True)
+        ]
+    
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, thickness: int = 3):
         """Draws the ellipse arc within the given image in-place
 

@@ -14,25 +14,25 @@ class CameraPose:
         tx: x-location of camera in 3D world
         ty: y-location of camera in 3D world
         tz: z-location of camera in 3D world
-        roll: rotation angle around y-axis
-        tilt: rotation angle around x-axis
-        pan: rotation angle around z-axis
-    """
+        rx: rotation around x-axis
+        ry: rotation around y-axis
+        rz: rotation around z-axis
+    """        
 
-    def __init__(self, tx: float, ty: float, tz: float, roll: float, tilt: float, pan: float):
+    def __init__(self, tx: float, ty: float, tz: float, rx: float, ry: float, rz: float):
         self.tx = tx
         self.ty = ty
         self.tz = tz
-        self.roll = roll
-        self.tilt = tilt
-        self.pan = pan
+        self.rx = rx
+        self.ry = ry
+        self.rz = rz
 
     def to_array(self) -> np.ndarray:
         """Converts to numpy array
         Returns:
-            ndarray  [tx, ty, tz, roll, tilt, pan]
+            ndarray  [tx, ty, tz, rx, ry, rz]
         """
-        return np.array([self.tx, self.ty, self.tz, self.roll, self.tilt, self.pan])
+        return np.array([self.tx, self.ty, self.tz, self.rx, self.ry, self.rz])
 
     @property
     def postion_xyz(self) -> np.ndarray:
@@ -60,4 +60,4 @@ class CameraPose:
         return False
 
     def __repr__(self):
-        return f"CameraPose(tx={np.round(self.tx, 4)}, ty={np.round(self.ty, 4)}, tz={np.round(self.tz, 4)}, tilt={np.round(self.tilt,4)}, pan={np.round(self.pan, 4)}, roll={np.round(self.roll, 4)})"
+        return f"CameraPose(tx={self.tx}, ty={self.ty}, tz={self.tz}, rx={self.rx}, ry={self.ry}, rz={self.rz})"
