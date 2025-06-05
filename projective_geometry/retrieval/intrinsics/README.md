@@ -147,9 +147,9 @@ We have the condition $w_0 = w_2$, so our second row in A will be:
 </p>
 
 Notice from Eq.(8) that
-$$
-w_0 = \frac{1}{f_x^2}, \quad w_2 = \frac{1}{f_y^2}
-$$  
+<p align="center">
+  <img src="focal.png" alt="alt text">
+</p>
 so we are effectively imposing $f_x = f_y = f$, which is the unit aspect ratio condition.
 
 <!-- $$
