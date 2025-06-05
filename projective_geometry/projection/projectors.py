@@ -270,7 +270,7 @@ def project_to_world(camera: Camera2, image_points: Tuple[Point2D, ...], z_plane
     sensor_wh = camera.sensor_wh
     calibration_matrix = convert_intrinsics_to_calibration_matrix(sensor_wh, focal_length_xy)
 
-    image_points_arr = np.array([pt.to_array() for pt in image_points])
+    image_points_arr = np.array([pt.to_array() for pt in image_points], dtype=np.float64)
 
     normalized_points = _undistort(image_points_arr, distortion_coefficients, calibration_matrix)
     xs, ys = normalized_points[..., 0], normalized_points[..., 1]

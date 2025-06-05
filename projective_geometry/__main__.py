@@ -833,6 +833,66 @@ def camera_calibration_test(
     cv2.imwrite((PROJECT_LOCATION / "results/BroadcastProjectedFieldPointsTest.png").as_posix(), field_image)
 
 
+@cli_app.command()
+def camera_retrieval_test(output: Path = PROJECT_LOCATION / "results/celtics_retrieval.png"):
+    W2, H2 = BasketballCourtTemplate.PITCH_WIDTH / 2, BasketballCourtTemplate.PITCH_HEIGHT / 2
+    points_frame = [
+        Point2D(x=845, y=290),
+        Point2D(x=126, y=872),
+        Point2D(x=1692, y=367),
+        Point2D(x=1115, y=707),
+        Point2D(x=1560, y=644),
+        Point2D(x=1270, y=510),
+    ]
+    points_template = [
+        Point3D(x=-W2, y=-H2),
+        Point3D(x=-W2, y=H2),
+        Point3D(x=-W2 + 28 * FOOT, y=-H2),
+        Point3D(x=-W2 + 19 * FOOT, y=8 * FOOT),
+        Point3D(x=-W2 + 28 * FOOT + 12 * INCH, y=0),
+        Point3D(x=-W2 + 19 * FOOT, y=-8 * FOOT),
+    ]
+    camera = Camera.from_point_correspondences(pts_source=points_template, pts_target=points_frame)
+
+    # project basketball court template
+    basketball_court = BasketballCourtTemplate()
+    frame = cv2.imread(IMG_CELTICS_FPATH.as_posix())
+    sensor_wh = frame.shape[:2][::-1]
+    image_size = ImageSize(width=frame.shape[1], height=frame.shape[0])
+    basketball_court_img = basketball_court.draw(image_size=image_size, color=Color.WHITE)
+
+    camera = Camera2.from_keypoint_correspondences(points_template, points_frame, sensor_wh)
+
+    keypoints = tuple(Point3D(x=pt.x, y=pt.y) for pt in basketball_court.keypoints())
+    keypoints_frame = project_to_sensor(camera, keypoints)
+    for pt in keypoints_frame:
+        pt.draw(img=frame, color=Color.GREEN, radius=PT_RADIUS, thickness=PT_THICKNESS)
+
+    points_frame2 = project_to_sensor(camera, points_template)
+    rmses_image = []
+    for pt_i1, pt_i2 in zip(points_frame, points_frame2, strict=True):
+        pt_i1.draw(img=frame, color=Color.RED, radius=2*PT_RADIUS, thickness=-1)
+        pt_i2.draw(img=frame, color=Color.BLUE, radius=PT_RADIUS, thickness=PT_THICKNESS)
+        rmses_image.append(np.linalg.norm(pt_i1.to_array() - pt_i2.to_array()))
+    rmse_image = np.mean(rmses_image)
+    print(f"RMSE Image: {rmse_image} px")
+
+    points_template2 = project_to_world(camera, points_frame)
+    rmses_world = []
+    for pt_w1, pt_w2 in zip(points_template, points_template2, strict=True):
+        pt_w1 = Point2D(x=pt_w1.x, y=pt_w1.y)
+        pt_w2 = Point2D(x=pt_w2.x, y=pt_w2.y)
+        pt_img1 = basketball_court.pitch_template_to_pitch_image(geometric_feature=pt_w1, image_size=image_size)
+        pt_img1.draw(img=basketball_court_img, color=Color.RED, radius=2*PT_RADIUS, thickness=-1)
+        pt_img2 = basketball_court.pitch_template_to_pitch_image(geometric_feature=pt_w2, image_size=image_size)
+        pt_img2.draw(img=basketball_court_img, color=Color.BLUE, radius=PT_RADIUS, thickness=PT_THICKNESS)  # type: ignore        rmses_world.append(np.linalg.norm(pt_w1.to_array() - pt_w2.to_array()))
+    rmse_world = np.mean(rmses_world)
+    print(f"RMSE World: {rmse_world} m")
+
+    cv2.imwrite(output.as_posix(), np.concatenate((frame, basketball_court_img), axis=1))
+
+
+
 # Program entry point redirection
 if __name__ == "__main__":
     cli_app()
