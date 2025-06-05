@@ -835,10 +835,10 @@ def camera_calibration_test(
     )  # create a white field image
     for pt_w1, pt_w2 in zip(world_points, world_point2, strict=True):
         pt_w1 += Point3D(x=FIELD_WIDTH / 2, y=FIELD_HEIGHT / 2)
-        pt_w1 *= FIELD_IMAGE_FACTOR
+        pt_w1 *= FIELD_IMAGE_FACTOR  # type: ignore[assignment]
         pt_w1 = Point3D(pt_w1.x, -pt_w1.y, pt_w1.z) + Point3D(0, FIELD_HEIGHT * FIELD_IMAGE_FACTOR, 0)
         pt_w2 += Point3D(x=FIELD_WIDTH / 2, y=FIELD_HEIGHT / 2)
-        pt_w2 *= FIELD_IMAGE_FACTOR
+        pt_w2 *= FIELD_IMAGE_FACTOR  # type: ignore[assignment]
         pt_w2 = Point3D(pt_w2.x, -pt_w2.y, pt_w2.z) + Point3D(0, FIELD_HEIGHT * FIELD_IMAGE_FACTOR, 0)
         pt_w1.draw(img=field_image, color=Color.RED, radius=PT_RADIUS, thickness=PT_THICKNESS)
         pt_w2.draw(img=field_image, color=Color.BLUE, radius=PT_RADIUS, thickness=PT_THICKNESS)
