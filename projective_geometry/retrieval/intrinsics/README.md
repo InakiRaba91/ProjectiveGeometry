@@ -38,7 +38,7 @@ There are several constraints that can be imposed on it:
 | No skew | $\omega_{12} = \omega_{21} = 0$ |
 | Unit aspect ratio | $\omega_{11} = \omega_{22}$ |
 
-Since $\omega$ is a symmetric matrix, we have 6 unknowns to find. We therefore need at least 6 constraints to solve for it. The process of calibrating the camera would look something like:
+Since $\omega$ is a symmetric matrix, we have 6 unknowns to find. The process of calibrating the camera would look something like:
 1. Parametrize $\omega$ as a vector $w=[w_0, w_1, w_2, w_3, w_4, w_5]^T$
 2. Find $n$ constraints from the relationships above and write them in the form $a_i^T\cdot w = 0$.
 3. Stack the constraints in a matrix $A$ to form a linear system of equations $Aw=0$.
