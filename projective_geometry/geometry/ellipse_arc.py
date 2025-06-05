@@ -7,7 +7,7 @@ from ..draw import Color
 from .ellipse import Ellipse
 from .exceptions import InvalidEllipseArcException
 from .line import Line
-from .point import Point
+from .point import Point2D
 
 
 class EllipseArc:
@@ -116,7 +116,7 @@ class EllipseArc:
         """Angle in degrees at which the ellipse arc ends"""
         return self._end_angle
 
-    def __add__(self, pt: Point) -> "EllipseArc":  # type: ignore
+    def __add__(self, pt: Point2D) -> "EllipseArc":  # type: ignore
         """Adds a point to ellipse arc, which simply shifts it
 
         Args:
@@ -127,7 +127,7 @@ class EllipseArc:
         """
         return EllipseArc(ellipse=self.ellipse + pt, line=self.line + pt)
 
-    def scale(self, pt: Point) -> "EllipseArc":
+    def scale(self, pt: Point2D) -> "EllipseArc":
         """Provides the ellipse arc after applying a scaling of the 2D space with
         the scaling given in each coordinate of point
 
@@ -160,7 +160,7 @@ class EllipseArc:
         """
         # We center both the ellipse and line applying the rigid transform
         line_rigid = line.rigid_transform(pt_shift=-ellipse.center, angle=-ellipse.angle)
-        ellipse_rigid = Ellipse(center=Point(x=0, y=0), axes=ellipse.axes, angle=0)
+        ellipse_rigid = Ellipse(center=Point2D(x=0, y=0), axes=ellipse.axes, angle=0)
         pts_intersection = ellipse_rigid.intersection_line(line=line_rigid)
         angles: List[float] = []
         for pt in pts_intersection:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from projective_geometry.geometry import Point
+from projective_geometry.geometry import Point2D
 
 
 class PitchDims:
@@ -36,7 +36,7 @@ class PitchDims:
         """Returns the height of the pitch"""
         return self._height
 
-    def on_pitch(self, pt: Point) -> bool:
+    def on_pitch(self, pt: Point2D) -> bool:
         """Checks if a point is within the pitch
 
         The pitch is defined within

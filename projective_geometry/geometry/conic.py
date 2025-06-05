@@ -3,7 +3,7 @@ from typing import Any, Optional, Tuple
 import numpy as np
 
 from ..draw import Color
-from .point import Point
+from .point import Point2D
 
 
 def check_symmetric_and_non_degenerate(mat: np.ndarray, tol: float, ndim: Optional[int] = None) -> bool:
@@ -49,7 +49,7 @@ class Conic:
         """Returns the matrix representation"""
         return self._M
 
-    def __add__(self, pt: Point) -> "Conic":  # type: ignore
+    def __add__(self, pt: Point2D) -> "Conic":  # type: ignore
         """Adds a point to conic
 
         Adding a point is decribed in homogeneous coordinates by x'=Tx
@@ -67,7 +67,7 @@ class Conic:
         M_shifted = Tinv.T.dot(self.M).dot(Tinv)
         return Conic(M=M_shifted)
 
-    def scale(self, pt: Point) -> "Conic":
+    def scale(self, pt: Point2D) -> "Conic":
         """Provides the conic after applying a scaling of the 2D space with
         the scaling given in each coordinate of point
 

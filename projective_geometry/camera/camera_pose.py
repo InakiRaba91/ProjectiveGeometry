@@ -4,6 +4,8 @@ from typing import Any
 
 import numpy as np
 
+from .geometry import roll_tilt_pan_to_rotation_matrix
+
 
 class CameraPose:
     """Class with camera pose parameters including 3D location/orientation of the camera.
@@ -31,6 +33,19 @@ class CameraPose:
             ndarray  [tx, ty, tz, roll, tilt, pan]
         """
         return np.array([self.tx, self.ty, self.tz, self.roll, self.tilt, self.pan])
+
+    @property
+    def postion_xyz(self) -> np.ndarray:
+        """Returns the position of the camera in 3D space as a numpy array."""
+        return np.array([self.tx, self.ty, self.tz])
+
+    @property
+    def rotation_matrix(self) -> np.ndarray:
+        """Calculates the rotation matrix based on roll, tilt, and pan angles.
+        Returns:
+            3x3 numpy array representing the rotation matrix.
+        """
+        return roll_tilt_pan_to_rotation_matrix(self.roll, self.tilt, self.pan)
 
     def __eq__(self, other: Any, tol: float = 1e-6):
         """Performs the equality comparison between current object and passed one.

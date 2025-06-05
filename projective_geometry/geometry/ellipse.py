@@ -7,11 +7,11 @@ from ..draw import Color
 from .conic import check_symmetric_and_non_degenerate
 from .exceptions import InvalidConicMatrixEllipseException, PointNotInEllipseException
 from .line import Line
-from .point import Point
+from .point import Point2D
 
 
 class Ellipse:
-    def __init__(self, center: Point, axes: Point, angle: float):
+    def __init__(self, center: Point2D, axes: Point2D, angle: float):
         """
         Initializes the ellipse with the given parameters.
         2D ellipse parametrized as in OpenCV. It is built rotating first, shifting then
@@ -27,12 +27,12 @@ class Ellipse:
         self._angle = angle
 
     @property
-    def center(self) -> Point:
+    def center(self) -> Point2D:
         """Returns the center of the ellipse"""
         return self._center
 
     @property
-    def axes(self) -> Point:
+    def axes(self) -> Point2D:
         """Returns the axes of the ellipse"""
         return self._axes
 
@@ -102,7 +102,7 @@ class Ellipse:
             angle = 90
         else:
             angle = 180
-        return Ellipse(center=Point(x=x0, y=y0), axes=Point(x=a, y=b), angle=angle)
+        return Ellipse(center=Point2D(x=x0, y=y0), axes=Point2D(x=a, y=b), angle=angle)
 
     def to_matrix(self) -> np.ndarray:
         """Computes the matrix representation of the ellipse as defined in
@@ -130,7 +130,7 @@ class Ellipse:
         F = A * (x0**2) + B * x0 * y0 + C * (y0**2) - (a * b) ** 2
         return np.array([[A, B / 2, D / 2], [B / 2, C, E / 2], [D / 2, E / 2, F]])
 
-    def __add__(self, pt: Point) -> "Ellipse":  # type: ignore
+    def __add__(self, pt: Point2D) -> "Ellipse":  # type: ignore
         """Adds a point to ellipse, which simply shifts it
 
         Args:
@@ -141,7 +141,7 @@ class Ellipse:
         """
         return Ellipse(center=self._center + pt, axes=self._axes, angle=self._angle)
 
-    def scale(self, pt: Point) -> "Ellipse":
+    def scale(self, pt: Point2D) -> "Ellipse":
         """Provides the ellipse after applying a scaling of the 2D space with
         the scaling given in each coordinate of point
 
@@ -168,7 +168,7 @@ class Ellipse:
         M_scaled = Hinv.dot(M).dot(Hinv)
         return Ellipse.from_matrix(M=M_scaled)
 
-    def intersection_line(self, line: Line, tol: float = 1e-6) -> Tuple[Point, ...]:
+    def intersection_line(self, line: Line, tol: float = 1e-6) -> Tuple[Point2D, ...]:
         """Find the point of intersection between the ellipse and a given line
         A rigid transform is applied to both the ellipse and the line in order
         to center the ellipse at the origin of coordinates and align its axes
@@ -190,7 +190,7 @@ class Ellipse:
             None if they don't intersect, Point in case of tangency, or tuple with two points of intersection
         """
         line_rigid = line.rigid_transform(pt_shift=-self._center, angle=-self._angle)
-        pts_intersection: List[Point] = []
+        pts_intersection: List[Point2D] = []
         if np.abs(line_rigid.b) > tol:
             # The method in the reference is only valid if the line is not vertical
             # we'll follow the notation in there
@@ -214,7 +214,7 @@ class Ellipse:
                 for root in unique_roots:
                     x = root
                     y = m * x + c
-                    pts_intersection.append(Point(x=x, y=y))
+                    pts_intersection.append(Point2D(x=x, y=y))
             else:
                 pass
         # Vertical line
@@ -227,25 +227,25 @@ class Ellipse:
             # on whether the discriminant 1-y²/b² is negative, null or positive
             discriminant = 1.0 - (x**2) / (self._axes.x**2)
             if np.abs(discriminant) <= tol:
-                pts_intersection.append(Point(x=x, y=0))
+                pts_intersection.append(Point2D(x=x, y=0))
             elif discriminant > 0:
                 y = self._axes.y * np.sqrt(discriminant)
-                pts_intersection.append(Point(x=x, y=y))
-                pts_intersection.append(Point(x=x, y=-y))
+                pts_intersection.append(Point2D(x=x, y=y))
+                pts_intersection.append(Point2D(x=x, y=-y))
             else:
                 pass
 
         # we need to undo the rigid transform in reverse order
         # 1. Rotate point
         # 2. Shift point
-        pts_intersection_rigid: List[Point] = []
+        pts_intersection_rigid: List[Point2D] = []
         for pt in pts_intersection:
             rotated_pt = pt.rotate(angle=self._angle)
             shifted_pt = rotated_pt + self._center
             pts_intersection_rigid.append(shifted_pt)
         return tuple(pts_intersection_rigid)
 
-    def contains_pt(self, pt: Point, tol: float = 1e-6) -> bool:
+    def contains_pt(self, pt: Point2D, tol: float = 1e-6) -> bool:
         """Determines whether a point belongs to an ellipse or not
         The points that belong to the centered&aligned ellipse satisfies
          (x/a)² + (y/b)² = 1
@@ -263,7 +263,7 @@ class Ellipse:
         value = root_augend**2 + root_addend**2
         return np.abs(value - 1) <= tol
 
-    def circle_angle_from_ellipse_point(self, pt: Point, tol: float = 1e-6) -> float:
+    def circle_angle_from_ellipse_point(self, pt: Point2D, tol: float = 1e-6) -> float:
         """Computes the angle in degrees of a point in the w.r.t. the
         inner/outer circle associated to the ellipse.
         Note:
@@ -303,12 +303,12 @@ class Ellipse:
         # compute point in inner/outer circle given by ellipse x-axis width,
         # preserving the sign of the y coordinate
         rads = np.deg2rad(gamma)
-        pt_circle = Point(x=self._axes.x * np.cos(rads), y=self._axes.x * np.sin(rads))
+        pt_circle = Point2D(x=self._axes.x * np.cos(rads), y=self._axes.x * np.sin(rads))
         x = pt_circle.x
         sign = np.sign(pt_circle.y)
         root_subtrahend = pt_circle.x / self._axes.x
         y = sign * self._axes.y * np.sqrt(1 - root_subtrahend**2)
-        pt_rigid_ellipse = Point(x=x, y=y)
+        pt_rigid_ellipse = Point2D(x=x, y=y)
 
         # apply reverted rigid transform
         rotated_pt = pt_rigid_ellipse.rotate(angle=self._angle)

@@ -2,7 +2,7 @@ from typing import Any, Tuple, Union
 
 import numpy as np
 
-from projective_geometry.geometry import Ellipse, EllipseArc, Line, LineSegment, Point
+from projective_geometry.geometry import Ellipse, EllipseArc, Line, LineSegment, Point2D
 
 from ..utils.distances import FOOT, INCH
 from .pitch_dims import PitchDims
@@ -53,7 +53,7 @@ class BasketballCourtTemplate(PitchTemplate):
         sidelines = self._sidelines()
         left_side_lines = self._left_side()
         right_side_lines = tuple([-line for line in left_side_lines])
-        halfway_line = (LineSegment(pt1=Point(x=0, y=-H2), pt2=Point(x=0, y=H2)),)
+        halfway_line = (LineSegment(pt1=Point2D(x=0, y=-H2), pt2=Point2D(x=0, y=H2)),)
         return sidelines + left_side_lines + right_side_lines + halfway_line
 
     def _curved_lines(self) -> Tuple[Union[Ellipse, EllipseArc], ...]:
@@ -64,26 +64,26 @@ class BasketballCourtTemplate(PitchTemplate):
         """
         W2 = self.pitch_dims.width / 2
         central_circles = (
-            Ellipse(center=Point(x=0, y=0), axes=Point(x=6 * FOOT, y=6 * FOOT), angle=0),
-            Ellipse(center=Point(x=0, y=0), axes=Point(x=2 * FOOT, y=2 * FOOT), angle=0),
+            Ellipse(center=Point2D(x=0, y=0), axes=Point2D(x=6 * FOOT, y=6 * FOOT), angle=0),
+            Ellipse(center=Point2D(x=0, y=0), axes=Point2D(x=2 * FOOT, y=2 * FOOT), angle=0),
         )
         free_throw_circles = (
-            Ellipse(center=Point(x=-W2 + 19 * FOOT, y=0), axes=Point(x=6 * FOOT, y=6 * FOOT), angle=0),
-            Ellipse(center=Point(x=W2 - 19 * FOOT, y=0), axes=Point(x=6 * FOOT, y=6 * FOOT), angle=0),
+            Ellipse(center=Point2D(x=-W2 + 19 * FOOT, y=0), axes=Point2D(x=6 * FOOT, y=6 * FOOT), angle=0),
+            Ellipse(center=Point2D(x=W2 - 19 * FOOT, y=0), axes=Point2D(x=6 * FOOT, y=6 * FOOT), angle=0),
         )
         three_point_arcs = (
             EllipseArc(
                 ellipse=Ellipse(
-                    center=Point(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
-                    axes=Point(x=23 * FOOT + 9 * INCH, y=23 * FOOT + 9 * INCH),
+                    center=Point2D(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
+                    axes=Point2D(x=23 * FOOT + 9 * INCH, y=23 * FOOT + 9 * INCH),
                     angle=0,
                 ),
                 line=Line(a=1, b=0, c=W2 - 14 * FOOT),
             ),
             EllipseArc(
                 ellipse=Ellipse(
-                    center=Point(x=W2 - 5 * FOOT - 3 * INCH, y=0),
-                    axes=Point(x=23 * FOOT + 9 * INCH, y=23 * FOOT + 9 * INCH),
+                    center=Point2D(x=W2 - 5 * FOOT - 3 * INCH, y=0),
+                    axes=Point2D(x=23 * FOOT + 9 * INCH, y=23 * FOOT + 9 * INCH),
                     angle=0,
                 ),
                 line=Line(a=-1, b=0, c=W2 - 14 * FOOT),
@@ -92,16 +92,16 @@ class BasketballCourtTemplate(PitchTemplate):
         restricted_arcs = (
             EllipseArc(
                 ellipse=Ellipse(
-                    center=Point(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
-                    axes=Point(x=4 * FOOT, y=4 * FOOT),
+                    center=Point2D(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
+                    axes=Point2D(x=4 * FOOT, y=4 * FOOT),
                     angle=0,
                 ),
                 line=Line(a=1, b=0, c=W2 - 5 * FOOT - 3 * INCH),
             ),
             EllipseArc(
                 ellipse=Ellipse(
-                    center=Point(x=W2 - 5 * FOOT - 3 * INCH, y=0),
-                    axes=Point(x=4 * FOOT, y=4 * FOOT),
+                    center=Point2D(x=W2 - 5 * FOOT - 3 * INCH, y=0),
+                    axes=Point2D(x=4 * FOOT, y=4 * FOOT),
                     angle=0,
                 ),
                 line=Line(a=-1, b=0, c=W2 - 5 * FOOT - 3 * INCH),
@@ -120,10 +120,10 @@ class BasketballCourtTemplate(PitchTemplate):
         W2, H2 = self.pitch_dims.width / 2, self.pitch_dims.height / 2
         return tuple(
             [
-                LineSegment(pt1=Point(x=-W2, y=-H2), pt2=Point(x=W2, y=-H2)),
-                LineSegment(pt1=Point(x=W2, y=-H2), pt2=Point(x=W2, y=H2)),
-                LineSegment(pt1=Point(x=W2, y=H2), pt2=Point(x=-W2, y=H2)),
-                LineSegment(pt1=Point(x=-W2, y=H2), pt2=Point(x=-W2, y=-H2)),
+                LineSegment(pt1=Point2D(x=-W2, y=-H2), pt2=Point2D(x=W2, y=-H2)),
+                LineSegment(pt1=Point2D(x=W2, y=-H2), pt2=Point2D(x=W2, y=H2)),
+                LineSegment(pt1=Point2D(x=W2, y=H2), pt2=Point2D(x=-W2, y=H2)),
+                LineSegment(pt1=Point2D(x=-W2, y=H2), pt2=Point2D(x=-W2, y=-H2)),
             ]
         )
 
@@ -138,26 +138,26 @@ class BasketballCourtTemplate(PitchTemplate):
         W2, H2 = self.pitch_dims.width / 2, self.pitch_dims.height / 2
         paint = (
             # outter
-            LineSegment(pt1=Point(x=-W2, y=-8 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=-8 * FOOT)),
-            LineSegment(pt1=Point(x=-W2 + 19 * FOOT, y=-8 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=8 * FOOT)),
-            LineSegment(pt1=Point(x=-W2, y=8 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=8 * FOOT)),
+            LineSegment(pt1=Point2D(x=-W2, y=-8 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=-8 * FOOT)),
+            LineSegment(pt1=Point2D(x=-W2 + 19 * FOOT, y=-8 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=8 * FOOT)),
+            LineSegment(pt1=Point2D(x=-W2, y=8 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=8 * FOOT)),
             # inner
-            LineSegment(pt1=Point(x=-W2, y=-6 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=-6 * FOOT)),
-            LineSegment(pt1=Point(x=-W2, y=6 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=6 * FOOT)),
+            LineSegment(pt1=Point2D(x=-W2, y=-6 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=-6 * FOOT)),
+            LineSegment(pt1=Point2D(x=-W2, y=6 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=6 * FOOT)),
         )
         three_points = (
-            LineSegment(pt1=Point(x=-W2, y=-22 * FOOT), pt2=Point(x=-W2 + 14 * FOOT, y=-22 * FOOT)),
-            LineSegment(pt1=Point(x=-W2, y=22 * FOOT), pt2=Point(x=-W2 + 14 * FOOT, y=22 * FOOT)),
+            LineSegment(pt1=Point2D(x=-W2, y=-22 * FOOT), pt2=Point2D(x=-W2 + 14 * FOOT, y=-22 * FOOT)),
+            LineSegment(pt1=Point2D(x=-W2, y=22 * FOOT), pt2=Point2D(x=-W2 + 14 * FOOT, y=22 * FOOT)),
         )
         free_throw_marks = tuple(
             [
-                LineSegment(pt1=Point(x=-W2 + x * FOOT, y=y * FOOT), pt2=Point(x=-W2 + x * FOOT, y=(y + np.sign(y)) * FOOT))
+                LineSegment(pt1=Point2D(x=-W2 + x * FOOT, y=y * FOOT), pt2=Point2D(x=-W2 + x * FOOT, y=(y + np.sign(y)) * FOOT))
                 for x in (7, 8, 11, 14)
                 for y in (-8, 8)
             ]
         )
         coaching_marks = (
-            LineSegment(pt1=Point(x=-W2 + 28 * FOOT, y=-H2), pt2=Point(x=-W2 + 28 * FOOT, y=-H2 + 3 * FOOT)),
-            LineSegment(pt1=Point(x=-W2 + 28 * FOOT, y=H2), pt2=Point(x=-W2 + 28 * FOOT, y=H2 - 3 * FOOT)),
+            LineSegment(pt1=Point2D(x=-W2 + 28 * FOOT, y=-H2), pt2=Point2D(x=-W2 + 28 * FOOT, y=-H2 + 3 * FOOT)),
+            LineSegment(pt1=Point2D(x=-W2 + 28 * FOOT, y=H2), pt2=Point2D(x=-W2 + 28 * FOOT, y=H2 - 3 * FOOT)),
         )
         return paint + three_points + free_throw_marks + coaching_marks

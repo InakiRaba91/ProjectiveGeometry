@@ -10,7 +10,7 @@ from projective_geometry.camera.camera_params import CameraParams
 from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry.ellipse import Ellipse
 from projective_geometry.geometry.line import Line
-from projective_geometry.geometry.point import Point
+from projective_geometry.geometry.point import Point2D
 from projective_geometry.image_registration.register import (
     ImageRegistrator,
     MatchedKeypoints,
@@ -67,7 +67,7 @@ class Camera:
         return Line(a=horizon_line[0], b=horizon_line[1], c=horizon_line[2])
 
     @staticmethod
-    def _get_matrix_from_point_correspondences(pts_source: List[Point], pts_target: List[Point]) -> np.ndarray:
+    def _get_matrix_from_point_correspondences(pts_source: List[Point2D], pts_target: List[Point2D]) -> np.ndarray:
         """
         Method to generate the auxiliary matrix for point correspondences defined in Eq.(10) in
         https://inakiraba91.github.io/projective-geometry-estimating-the-homography-matrix.html
@@ -208,7 +208,7 @@ class Camera:
         return cls(H=H)
 
     @classmethod
-    def from_point_correspondences(cls, pts_source: List[Point], pts_target: List[Point]) -> "Camera":
+    def from_point_correspondences(cls, pts_source: List[Point2D], pts_target: List[Point2D]) -> "Camera":
         """
         Method to generate the homography from point correspondences. The method uses the
         SVD as explained in https://inakiraba91.github.io/projective-geometry-estimating-the-homography-matrix.html
@@ -288,8 +288,8 @@ class Camera:
     @classmethod
     def from_correspondences(
         cls,
-        pts_source: List[Point],
-        pts_target: List[Point],
+        pts_source: List[Point2D],
+        pts_target: List[Point2D],
         lines_source: List[Line],
         lines_target: List[Line],
         ellipses_source: List[Ellipse],
@@ -321,8 +321,8 @@ class Camera:
     @classmethod
     def from_point_correspondences_cv2(
         cls,
-        pts_source: List[Point],
-        pts_target: List[Point],
+        pts_source: List[Point2D],
+        pts_target: List[Point2D],
         ransac: bool = False,
     ) -> "Camera":
         """

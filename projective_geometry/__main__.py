@@ -8,7 +8,7 @@ from typer import Typer
 from projective_geometry.camera import Camera, CameraParams, CameraPose
 from projective_geometry.draw import Color
 from projective_geometry.draw.image_size import ImageSize
-from projective_geometry.geometry import Ellipse, Line, Point
+from projective_geometry.geometry import Ellipse, Line, Point2D
 from projective_geometry.geometry.conic import Conic
 from projective_geometry.geometry.line_segment import LineSegment
 from projective_geometry.pitch_template.basketball_template import (
@@ -20,7 +20,7 @@ from projective_geometry.projection.projectors import (
 )
 from projective_geometry.utils.distances import FOOT, INCH
 
-PINHOLE_SVG = Point(x=497.18973, y=33.56244)
+PINHOLE_SVG = Point2D(x=497.18973, y=33.56244)
 IMG_SVG_SIZE = ImageSize(width=993.77657, height=287.99746)
 Y_GROUND_SVG = 90.30712
 X_FILM_SVG = 468.59334
@@ -29,7 +29,7 @@ FRISBEE_COLOR = (0, 199, 137)
 FRISBEE_DISTANCE_TO_PINHOLE = 12
 FRISBEE_BORDER_COLOR = (0, 128, 0)
 RADIUS_FRISBEE = 5
-SIZE_FRISBEE_PERSEPECTIVE = Point(x=RADIUS_FRISBEE * UNIT, y=18.33109)
+SIZE_FRISBEE_PERSEPECTIVE = Point2D(x=RADIUS_FRISBEE * UNIT, y=18.33109)
 IMG_DISPLAY_UNIT = 500
 BORDER = 15
 CAMERA_HEIGHT = 2 * IMG_DISPLAY_UNIT
@@ -41,21 +41,21 @@ CAMERA = Camera.from_camera_params(
     image_size=ImageSize(width=IMG_DISPLAY_UNIT, height=IMG_DISPLAY_UNIT),
 )
 CORNERS_FILM = [
-    Point(x=1755, y=96),
-    Point(x=1784, y=69),
-    Point(x=1755, y=194),
-    Point(x=1784, y=165),
+    Point2D(x=1755, y=96),
+    Point2D(x=1784, y=69),
+    Point2D(x=1755, y=194),
+    Point2D(x=1784, y=165),
 ]
 CORNERS_DISPLAY = [
-    Point(x=0, y=0),
-    Point(x=IMG_DISPLAY_UNIT, y=0),
-    Point(x=0, y=IMG_DISPLAY_UNIT),
-    Point(x=IMG_DISPLAY_UNIT, y=IMG_DISPLAY_UNIT),
+    Point2D(x=0, y=0),
+    Point2D(x=IMG_DISPLAY_UNIT, y=0),
+    Point2D(x=0, y=IMG_DISPLAY_UNIT),
+    Point2D(x=IMG_DISPLAY_UNIT, y=IMG_DISPLAY_UNIT),
 ]
 CAMERA_FILM = Camera.from_point_correspondences(CORNERS_DISPLAY, CORNERS_FILM)
 OVERRIDEN_CAMERA_LINE = LineSegment(
-    pt1=Point(x=1754, y=95),
-    pt2=Point(x=1860, y=95),
+    pt1=Point2D(x=1754, y=95),
+    pt2=Point2D(x=1860, y=95),
 )
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 FONT_SCALE = 3
@@ -76,6 +76,7 @@ BORDER_SIZE = 10
 
 cli_app = Typer()
 
+
 def project_3d_points(H: np.ndarray, pts: np.ndarray) -> np.ndarray:
     """
     Project 3D points using given homography matrix"
@@ -94,7 +95,7 @@ def project_3d_points(H: np.ndarray, pts: np.ndarray) -> np.ndarray:
 def get_2d_homography_between_planes(H: np.ndarray, pts_world: list[np.ndarray]) -> np.ndarray:
     """
     Get 2D homography between two planes
-    
+
     Args:
         H: original Homography matrix mapping world to image
         pts_world: List of 3D points in world plane
@@ -113,11 +114,11 @@ def get_2d_homography_between_planes(H: np.ndarray, pts_world: list[np.ndarray])
     v2 = v2 - np.dot(v2.T, v1) * v1
     v2 = v2 / np.linalg.norm(v2)
     M = np.concatenate([v1, v2], axis=1)
-    
+
     # find the homography between the two planes
     H_aux = np.concatenate((np.concatenate([M, p1], axis=1), np.array([[0, 0, 1]])), axis=0)
     return H.dot(H_aux)
-    
+
 
 def get_intrinsic_from_2d_homographies(H_planes: list[np.ndarray]) -> np.ndarray:
     """
@@ -133,17 +134,17 @@ def get_intrinsic_from_2d_homographies(H_planes: list[np.ndarray]) -> np.ndarray
     for i, Hi in enumerate(H_planes):
         u = Hi[:, 0]
         v = Hi[:, 1]
-        A[2*i, :] = np.array([u[0]*v[0] + u[1]*v[1], u[2]*v[0] + u[0]*v[2], u[2]*v[1] + u[1]*v[2], u[2]*v[2]])
-        a1 = np.array([u[0]**2 + u[1]**2, 2*u[0]*u[2], 2*u[1]*u[2], u[2]**2])
-        a2 = np.array([v[0]**2 + v[1]**2, 2*v[0]*v[2], 2*v[1]*v[2], v[2]**2])
-        A[2*i+1, :] = a1 - a2
+        A[2 * i, :] = np.array([u[0] * v[0] + u[1] * v[1], u[2] * v[0] + u[0] * v[2], u[2] * v[1] + u[1] * v[2], u[2] * v[2]])
+        a1 = np.array([u[0] ** 2 + u[1] ** 2, 2 * u[0] * u[2], 2 * u[1] * u[2], u[2] ** 2])
+        a2 = np.array([v[0] ** 2 + v[1] ** 2, 2 * v[0] * v[2], 2 * v[1] * v[2], v[2] ** 2])
+        A[2 * i + 1, :] = a1 - a2
     # # Solve system A*w = 0
     U, S, Vt = np.linalg.svd(A)
     w = Vt[-1, :] * np.sign(Vt[-1, 0])  # to ensure the first element is positive, since it's f**2
     omega = np.array([[w[0], 0, w[1]], [0, w[0], w[2]], [w[1], w[2], w[3]]])
-    f_estimate = 1 / (omega[0,0] ** 0.5)
-    px_estimate = - omega[0, 2] / omega[0, 0]
-    py_estimate = - omega[1, 2] / omega[1, 1]
+    f_estimate = 1 / (omega[0, 0] ** 0.5)
+    px_estimate = -omega[0, 2] / omega[0, 0]
+    py_estimate = -omega[1, 2] / omega[1, 1]
     return np.array([[f_estimate, 0, px_estimate], [0, f_estimate, py_estimate], [0, 0, 1]])
 
 
@@ -157,15 +158,15 @@ def label_conic_type(img: np.ndarray, conic_type: str, background_color: Tuple[A
     return img
 
 
-def get_projection_film(pt: Point, pinhole: Point, x_film: float) -> LineSegment:
+def get_projection_film(pt: Point2D, pinhole: Point2D, x_film: float) -> LineSegment:
     if abs(pt.x - pinhole.x) < 1e-5:
-        pt2 = Point(x=pinhole.x, y=0)
+        pt2 = Point2D(x=pinhole.x, y=0)
     elif pt.x < pinhole.x:
         pt2 = pinhole
     else:
         line = Line.from_points(pt1=pt, pt2=pinhole)
         a, b, c = line.to_array()
-        pt2 = Point(x=x_film, y=-(a * x_film + c) / b)
+        pt2 = Point2D(x=x_film, y=-(a * x_film + c) / b)
     return LineSegment(pt1=pt, pt2=pt2)
 
 
@@ -173,8 +174,8 @@ def generate_projected_conic_img(x_frisbee: float):
     img_captured = np.ones((IMG_DISPLAY_UNIT, IMG_DISPLAY_UNIT, 3)) * 255
     x_display = IMG_DISPLAY_UNIT * x_frisbee / UNIT
     ellipse = Ellipse(
-        center=Point(x=x_display, y=0),
-        axes=Point(x=RADIUS_FRISBEE * IMG_DISPLAY_UNIT, y=RADIUS_FRISBEE * IMG_DISPLAY_UNIT),
+        center=Point2D(x=x_display, y=0),
+        axes=Point2D(x=RADIUS_FRISBEE * IMG_DISPLAY_UNIT, y=RADIUS_FRISBEE * IMG_DISPLAY_UNIT),
         angle=0,
     )
     conic = Conic(M=ellipse.to_matrix())
@@ -199,12 +200,12 @@ def generate_frame(img: np.ndarray, x_frisbee: float):
     # define scale w.r.t. svg size
     img_size = ImageSize(width=img.shape[1], height=img.shape[0])
     sx, sy = img_size.width / IMG_SVG_SIZE.width, img_size.height / IMG_SVG_SIZE.height
-    scale = Point(x=sx, y=sy)
+    scale = Point2D(x=sx, y=sy)
 
     # create ellipse
     pinhole = PINHOLE_SVG.scale(pt=scale)
     ellipse = Ellipse(
-        center=Point(x=x_frisbee, y=Y_GROUND_SVG).scale(pt=scale),
+        center=Point2D(x=x_frisbee, y=Y_GROUND_SVG).scale(pt=scale),
         axes=SIZE_FRISBEE_PERSEPECTIVE.scale(pt=scale),
         angle=0,
     )
@@ -218,8 +219,8 @@ def generate_frame(img: np.ndarray, x_frisbee: float):
     # add projection rays
     x_film = X_FILM_SVG * sx
     pts_ellipse_axes = [
-        Point(x=x_frisbee + SIZE_FRISBEE_PERSEPECTIVE.x, y=Y_GROUND_SVG).scale(pt=scale),
-        Point(x=x_frisbee - SIZE_FRISBEE_PERSEPECTIVE.x, y=Y_GROUND_SVG).scale(pt=scale),
+        Point2D(x=x_frisbee + SIZE_FRISBEE_PERSEPECTIVE.x, y=Y_GROUND_SVG).scale(pt=scale),
+        Point2D(x=x_frisbee - SIZE_FRISBEE_PERSEPECTIVE.x, y=Y_GROUND_SVG).scale(pt=scale),
     ]
     ellipse.draw(img=img, color=FRISBEE_COLOR, thickness=-1)
     # ellipse.draw(img=img, color=FRISBEE_BORDER_COLOR)
@@ -282,18 +283,18 @@ def homography_from_point_correspondences_demo(
     # obtain camera from annotated points
     W2, H2 = BasketballCourtTemplate.PITCH_WIDTH / 2, BasketballCourtTemplate.PITCH_HEIGHT / 2
     points_frame = [
-        Point(x=845, y=290),
-        Point(x=126, y=872),
-        Point(x=1692, y=367),
-        Point(x=1115, y=707),
-        Point(x=1560, y=644),
+        Point2D(x=845, y=290),
+        Point2D(x=126, y=872),
+        Point2D(x=1692, y=367),
+        Point2D(x=1115, y=707),
+        Point2D(x=1560, y=644),
     ]
     points_template = [
-        Point(x=-W2, y=-H2),
-        Point(x=-W2, y=H2),
-        Point(x=-W2 + 28 * FOOT, y=-H2),
-        Point(x=-W2 + 19 * FOOT, y=8 * FOOT),
-        Point(x=-W2 + 28 * FOOT + 12 * INCH, y=0),
+        Point2D(x=-W2, y=-H2),
+        Point2D(x=-W2, y=H2),
+        Point2D(x=-W2 + 28 * FOOT, y=-H2),
+        Point2D(x=-W2 + 19 * FOOT, y=8 * FOOT),
+        Point2D(x=-W2 + 28 * FOOT + 12 * INCH, y=0),
     ]
     camera = Camera.from_point_correspondences(pts_source=points_template, pts_target=points_frame)
 
@@ -329,12 +330,12 @@ def homography_from_line_correspondences_demo(
     # obtain camera from annotated points
     W2, H2 = BasketballCourtTemplate.PITCH_WIDTH / 2, BasketballCourtTemplate.PITCH_HEIGHT / 2
     lines_template = [
-        Line.from_points(pt1=Point(x=-W2, y=-H2), pt2=Point(x=W2, y=-H2)),
-        Line.from_points(pt1=Point(x=W2, y=H2), pt2=Point(x=-W2, y=H2)),
-        Line.from_points(pt1=Point(x=-W2, y=H2), pt2=Point(x=-W2, y=-H2)),
-        Line.from_points(pt1=Point(x=-W2, y=-8 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=-8 * FOOT)),
-        Line.from_points(pt1=Point(x=-W2 + 19 * FOOT, y=-8 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=8 * FOOT)),
-        Line.from_points(pt1=Point(x=-W2, y=8 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=8 * FOOT)),
+        Line.from_points(pt1=Point2D(x=-W2, y=-H2), pt2=Point2D(x=W2, y=-H2)),
+        Line.from_points(pt1=Point2D(x=W2, y=H2), pt2=Point2D(x=-W2, y=H2)),
+        Line.from_points(pt1=Point2D(x=-W2, y=H2), pt2=Point2D(x=-W2, y=-H2)),
+        Line.from_points(pt1=Point2D(x=-W2, y=-8 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=-8 * FOOT)),
+        Line.from_points(pt1=Point2D(x=-W2 + 19 * FOOT, y=-8 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=8 * FOOT)),
+        Line.from_points(pt1=Point2D(x=-W2, y=8 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=8 * FOOT)),
     ]
     lines_frame = [
         Line(a=193.86019201178604, b=-2080.7791860169154, c=438295.7707991526),
@@ -378,62 +379,62 @@ def homography_from_ellipse_correspondences_demo(
     ellipses_frame = [
         # free-throw circle
         Ellipse(
-            center=Point(x=1198.1113211177799, y=606.6167316662579),
-            axes=Point(x=77.11168956853989, y=222.0629912180788),
+            center=Point2D(x=1198.1113211177799, y=606.6167316662579),
+            axes=Point2D(x=77.11168956853989, y=222.0629912180788),
             angle=90.70347611420907,
         ),
         # three-point arc
         Ellipse(
-            center=Point(x=707.2445757522346, y=600.6708571711737),
-            axes=Point(x=296.0026379644702, y=871.9410745372605),
+            center=Point2D(x=707.2445757522346, y=600.6708571711737),
+            axes=Point2D(x=296.0026379644702, y=871.9410745372605),
             angle=88.64701264444109,
         ),
         # restricted arc
         Ellipse(
-            center=Point(x=720.7694262254354, y=553.058980020591),
-            axes=Point(x=48.53764408421055, y=144.87141097409037),
+            center=Point2D(x=720.7694262254354, y=553.058980020591),
+            axes=Point2D(x=48.53764408421055, y=144.87141097409037),
             angle=88.70747899257509,
         ),
         # corner arcs
         Ellipse(
-            center=Point(x=810.80940320813, y=325.6083962774958),
-            axes=Point(x=127.8838414420805, y=438.8219609157189),
+            center=Point2D(x=810.80940320813, y=325.6083962774958),
+            axes=Point2D(x=127.8838414420805, y=438.8219609157189),
             angle=89.32970121679617,
         ),
         Ellipse(
-            center=Point(x=172.0013839803821, y=851.1080576625786),
-            axes=Point(x=227.28737736672736, y=601.9016883331738),
+            center=Point2D(x=172.0013839803821, y=851.1080576625786),
+            axes=Point2D(x=227.28737736672736, y=601.9016883331738),
             angle=85.72932402628315,
         ),
     ]
     ellipses_template = [
         # free-throw circle
         Ellipse(
-            center=Point(x=-W2 + 19 * FOOT, y=0),
-            axes=Point(x=6 * FOOT, y=6 * FOOT),
+            center=Point2D(x=-W2 + 19 * FOOT, y=0),
+            axes=Point2D(x=6 * FOOT, y=6 * FOOT),
             angle=0,
         ),
         # three-point arc
         Ellipse(
-            center=Point(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
-            axes=Point(x=23 * FOOT + 9 * INCH, y=23 * FOOT + 9 * INCH),
+            center=Point2D(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
+            axes=Point2D(x=23 * FOOT + 9 * INCH, y=23 * FOOT + 9 * INCH),
             angle=0,
         ),
         # restricted arc
         Ellipse(
-            center=Point(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
-            axes=Point(x=4 * FOOT, y=4 * FOOT),
+            center=Point2D(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
+            axes=Point2D(x=4 * FOOT, y=4 * FOOT),
             angle=0,
         ),
         # corner arcs
         Ellipse(
-            center=Point(x=-W2, y=-H2 + 3 * FOOT),
-            axes=Point(x=14 * FOOT, y=14 * FOOT),
+            center=Point2D(x=-W2, y=-H2 + 3 * FOOT),
+            axes=Point2D(x=14 * FOOT, y=14 * FOOT),
             angle=0,
         ),
         Ellipse(
-            center=Point(x=-W2, y=H2 - 3 * FOOT),
-            axes=Point(x=14 * FOOT, y=14 * FOOT),
+            center=Point2D(x=-W2, y=H2 - 3 * FOOT),
+            axes=Point2D(x=14 * FOOT, y=14 * FOOT),
             angle=0,
         ),
     ]
@@ -470,26 +471,26 @@ def homography_from_correspondences_demo(
     # obtain camera from annotated points
     W2, H2 = BasketballCourtTemplate.PITCH_WIDTH / 2, BasketballCourtTemplate.PITCH_HEIGHT / 2
     points_frame = [
-        Point(x=845, y=290),
-        Point(x=126, y=872),
-        Point(x=1692, y=367),
-        Point(x=1115, y=707),
-        Point(x=1560, y=644),
+        Point2D(x=845, y=290),
+        Point2D(x=126, y=872),
+        Point2D(x=1692, y=367),
+        Point2D(x=1115, y=707),
+        Point2D(x=1560, y=644),
     ]
     points_template = [
-        Point(x=-W2, y=-H2),
-        Point(x=-W2, y=H2),
-        Point(x=-W2 + 28 * FOOT, y=-H2),
-        Point(x=-W2 + 19 * FOOT, y=8 * FOOT),
-        Point(x=-W2 + 28 * FOOT + 12 * INCH, y=0),
+        Point2D(x=-W2, y=-H2),
+        Point2D(x=-W2, y=H2),
+        Point2D(x=-W2 + 28 * FOOT, y=-H2),
+        Point2D(x=-W2 + 19 * FOOT, y=8 * FOOT),
+        Point2D(x=-W2 + 28 * FOOT + 12 * INCH, y=0),
     ]
     lines_template = [
-        Line.from_points(pt1=Point(x=-W2, y=-H2), pt2=Point(x=W2, y=-H2)),
-        Line.from_points(pt1=Point(x=W2, y=H2), pt2=Point(x=-W2, y=H2)),
-        Line.from_points(pt1=Point(x=-W2, y=H2), pt2=Point(x=-W2, y=-H2)),
-        Line.from_points(pt1=Point(x=-W2, y=-8 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=-8 * FOOT)),
-        Line.from_points(pt1=Point(x=-W2 + 19 * FOOT, y=-8 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=8 * FOOT)),
-        Line.from_points(pt1=Point(x=-W2, y=8 * FOOT), pt2=Point(x=-W2 + 19 * FOOT, y=8 * FOOT)),
+        Line.from_points(pt1=Point2D(x=-W2, y=-H2), pt2=Point2D(x=W2, y=-H2)),
+        Line.from_points(pt1=Point2D(x=W2, y=H2), pt2=Point2D(x=-W2, y=H2)),
+        Line.from_points(pt1=Point2D(x=-W2, y=H2), pt2=Point2D(x=-W2, y=-H2)),
+        Line.from_points(pt1=Point2D(x=-W2, y=-8 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=-8 * FOOT)),
+        Line.from_points(pt1=Point2D(x=-W2 + 19 * FOOT, y=-8 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=8 * FOOT)),
+        Line.from_points(pt1=Point2D(x=-W2, y=8 * FOOT), pt2=Point2D(x=-W2 + 19 * FOOT, y=8 * FOOT)),
     ]
     lines_frame = [
         Line(a=193.86019201178604, b=-2080.7791860169154, c=438295.7707991526),
@@ -502,62 +503,62 @@ def homography_from_correspondences_demo(
     ellipses_frame = [
         # free-throw circle
         Ellipse(
-            center=Point(x=1198.1113211177799, y=606.6167316662579),
-            axes=Point(x=77.11168956853989, y=222.0629912180788),
+            center=Point2D(x=1198.1113211177799, y=606.6167316662579),
+            axes=Point2D(x=77.11168956853989, y=222.0629912180788),
             angle=90.70347611420907,
         ),
         # three-point arc
         Ellipse(
-            center=Point(x=707.2445757522346, y=600.6708571711737),
-            axes=Point(x=296.0026379644702, y=871.9410745372605),
+            center=Point2D(x=707.2445757522346, y=600.6708571711737),
+            axes=Point2D(x=296.0026379644702, y=871.9410745372605),
             angle=88.64701264444109,
         ),
         # restricted arc
         Ellipse(
-            center=Point(x=720.7694262254354, y=553.058980020591),
-            axes=Point(x=48.53764408421055, y=144.87141097409037),
+            center=Point2D(x=720.7694262254354, y=553.058980020591),
+            axes=Point2D(x=48.53764408421055, y=144.87141097409037),
             angle=88.70747899257509,
         ),
         # corner arcs
         Ellipse(
-            center=Point(x=810.80940320813, y=325.6083962774958),
-            axes=Point(x=127.8838414420805, y=438.8219609157189),
+            center=Point2D(x=810.80940320813, y=325.6083962774958),
+            axes=Point2D(x=127.8838414420805, y=438.8219609157189),
             angle=89.32970121679617,
         ),
         Ellipse(
-            center=Point(x=172.0013839803821, y=851.1080576625786),
-            axes=Point(x=227.28737736672736, y=601.9016883331738),
+            center=Point2D(x=172.0013839803821, y=851.1080576625786),
+            axes=Point2D(x=227.28737736672736, y=601.9016883331738),
             angle=85.72932402628315,
         ),
     ]
     ellipses_template = [
         # free-throw circle
         Ellipse(
-            center=Point(x=-W2 + 19 * FOOT, y=0),
-            axes=Point(x=6 * FOOT, y=6 * FOOT),
+            center=Point2D(x=-W2 + 19 * FOOT, y=0),
+            axes=Point2D(x=6 * FOOT, y=6 * FOOT),
             angle=0,
         ),
         # three-point arc
         Ellipse(
-            center=Point(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
-            axes=Point(x=23 * FOOT + 9 * INCH, y=23 * FOOT + 9 * INCH),
+            center=Point2D(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
+            axes=Point2D(x=23 * FOOT + 9 * INCH, y=23 * FOOT + 9 * INCH),
             angle=0,
         ),
         # restricted arc
         Ellipse(
-            center=Point(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
-            axes=Point(x=4 * FOOT, y=4 * FOOT),
+            center=Point2D(x=-W2 + 5 * FOOT + 3 * INCH, y=0),
+            axes=Point2D(x=4 * FOOT, y=4 * FOOT),
             angle=0,
         ),
         # corner arcs
         Ellipse(
-            center=Point(x=-W2, y=-H2 + 3 * FOOT),
-            axes=Point(x=14 * FOOT, y=14 * FOOT),
+            center=Point2D(x=-W2, y=-H2 + 3 * FOOT),
+            axes=Point2D(x=14 * FOOT, y=14 * FOOT),
             angle=0,
         ),
         Ellipse(
-            center=Point(x=-W2, y=H2 - 3 * FOOT),
-            axes=Point(x=14 * FOOT, y=14 * FOOT),
+            center=Point2D(x=-W2, y=H2 - 3 * FOOT),
+            axes=Point2D(x=14 * FOOT, y=14 * FOOT),
             angle=0,
         ),
     ]
@@ -641,39 +642,48 @@ def homography_from_image_registration(
     target_and_warped_images = cv2.addWeighted(target_image, 1, warped_image, 0.5, 0)
     cv2.imwrite((PROJECT_LOCATION / "results/warped.png").as_posix(), target_and_warped_images)
 
-@cli_app.command()
-def focal_length_from_orthogonal_vanishing_points_demo(image: Path = PROJECT_LOCATION / "results/BasketballCourtCalibration.png"):
-    image = cv2.imread(image.as_posix())
-    width, height = image.shape[1], image.shape[0]
-    vp1 = Point(x=7239.60, y=875.45)
-    vp2 = Point(x=754.46, y=-1758.11)
-    focal_length = (-(vp1.x - width / 2) * (vp2.x - width / 2) - (vp1.y - height / 2) * (vp2.y - height / 2)) ** 0.5
-    print(f"Focal length: {focal_length}")
-    pass
 
 @cli_app.command()
-def intrinsic_from_three_planes_demo(image: Path = PROJECT_LOCATION / "results/SoccerPitchCalibration.png"):
+def focal_length_from_orthogonal_vanishing_points_demo(
+    image_path: Path = PROJECT_LOCATION / "results/BasketballCourtCalibration.png",
+):
+    image = cv2.imread(image_path.as_posix())
+    width, height = image.shape[1], image.shape[0]
+    vp1 = Point2D(x=7239.60, y=875.45)
+    vp2 = Point2D(x=754.46, y=-1758.11)
+    focal_length = (-(vp1.x - width / 2) * (vp2.x - width / 2) - (vp1.y - height / 2) * (vp2.y - height / 2)) ** 0.5
+    print(f"Focal length: {focal_length}")
+
+
+@cli_app.command()
+def intrinsic_from_three_planes_demo(image_path: Path = PROJECT_LOCATION / "results/SoccerPitchCalibration.png"):
     # ground truth
     f, tx, ty, tz, rx, ry, rz = 4763, -21, -110, 40, 250, 2, 13
-    image = cv2.imread(image.as_posix())
+    image = cv2.imread(image_path.as_posix())
     image_width, image_height = image.shape[1], image.shape[0]
-    pitch_width, pitch_height = 120, 80
+    pitch_width, _ = 120, 80
     K = np.array([[f, 0, image_width // 2], [0, f, image_height // 2], [0, 0, 1]])
-    Rx = np.array([
-        [1, 0, 0],
-        [0, np.cos(rx*np.pi/180), -np.sin(rx*np.pi/180)],
-        [0, np.sin(rx*np.pi/180), np.cos(rx*np.pi/180)]
-    ])
-    Ry = np.array([
-        [np.cos(ry*np.pi/180), 0, np.sin(ry*np.pi/180)],
-        [0, 1, 0],
-        [-np.sin(ry*np.pi/180), 0, np.cos(ry*np.pi/180)]
-    ])
-    Rz = np.array([
-        [np.cos(rz*np.pi/180), -np.sin(rz*np.pi/180), 0],
-        [np.sin(rz*np.pi/180), np.cos(rz*np.pi/180), 0],
-        [0, 0, 1]
-    ])
+    Rx = np.array(
+        [
+            [1, 0, 0],
+            [0, np.cos(rx * np.pi / 180), -np.sin(rx * np.pi / 180)],
+            [0, np.sin(rx * np.pi / 180), np.cos(rx * np.pi / 180)],
+        ]
+    )
+    Ry = np.array(
+        [
+            [np.cos(ry * np.pi / 180), 0, np.sin(ry * np.pi / 180)],
+            [0, 1, 0],
+            [-np.sin(ry * np.pi / 180), 0, np.cos(ry * np.pi / 180)],
+        ]
+    )
+    Rz = np.array(
+        [
+            [np.cos(rz * np.pi / 180), -np.sin(rz * np.pi / 180), 0],
+            [np.sin(rz * np.pi / 180), np.cos(rz * np.pi / 180), 0],
+            [0, 0, 1],
+        ]
+    )
     R = Rz.dot(Ry).dot(Rx)
     T = np.array([[tx], [ty], [tz]])
     E = np.concatenate((R.T, -R.T.dot(T)), axis=1)
@@ -690,7 +700,7 @@ def intrinsic_from_three_planes_demo(image: Path = PROJECT_LOCATION / "results/S
     top_right_world = np.array([[-pitch_width / 2, goal_width / 2, goal_height, 1]]).T
     pts_goal = np.concatenate((bottom_left_world, top_left_world, bottom_right_world, top_right_world), axis=1)
     bottom_left_image, top_left_image, bottom_right_image, top_right_image = project_3d_points(H=H, pts=pts_goal).T
-    
+
     # box points
     box_height, box_width = 10, 6
     bottom_left_box_world = np.array([[-pitch_width / 2, -box_height, 0, 1]]).T
@@ -698,8 +708,10 @@ def intrinsic_from_three_planes_demo(image: Path = PROJECT_LOCATION / "results/S
     bottom_right_box_world = np.array([[-pitch_width / 2 + box_width, -box_height, 0, 1]]).T
     top_right_box_world = np.array([[-pitch_width / 2 + box_width, box_height, 0, 1]]).T
     pts_box = np.concatenate((bottom_left_box_world, top_left_box_world, bottom_right_box_world, top_right_box_world), axis=1)
-    bottom_left_box_image, top_left_box_image, bottom_right_box_image, top_right_box_image = project_3d_points(H=H, pts=pts_box).T
-    
+    bottom_left_box_image, top_left_box_image, bottom_right_box_image, top_right_box_image = project_3d_points(
+        H=H, pts=pts_box
+    ).T
+
     # group keypoints for three identified planes
     plane_points_world = [
         # goal plane

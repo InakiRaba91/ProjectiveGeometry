@@ -8,7 +8,7 @@ import numpy as np
 
 from ..draw import Color
 from .exceptions import LineFromEqualPointsException
-from .point import Point
+from .point import Point2D
 
 
 class LineSegment:
@@ -21,19 +21,19 @@ class LineSegment:
 
     tol = 1e-6
 
-    def __init__(self, pt1: Point, pt2: Point):
+    def __init__(self, pt1: Point2D, pt2: Point2D):
         if (pt1 - pt2).length() <= self.tol:
             raise LineFromEqualPointsException("Both points are equal.")
         self._pt1 = pt1
         self._pt2 = pt2
 
     @property
-    def pt1(self) -> Point:
+    def pt1(self) -> Point2D:
         """Returns 1st point"""
         return self._pt1
 
     @property
-    def pt2(self) -> Point:
+    def pt2(self) -> Point2D:
         """Returns 2nd point"""
         return self._pt2
 
@@ -63,7 +63,7 @@ class LineSegment:
         """
         return LineSegment(pt1=-self.pt1, pt2=-self.pt2)
 
-    def __add__(self, other: Union["LineSegment", Point]) -> "LineSegment":  # type: ignore
+    def __add__(self, other: Union["LineSegment", Point2D]) -> "LineSegment":  # type: ignore
         """Adds a point or line segment to line segment
 
         Args:
@@ -72,7 +72,7 @@ class LineSegment:
         Returns:
             LineSegment resulting from the sum
         """
-        if isinstance(other, Point):
+        if isinstance(other, Point2D):
             return LineSegment(pt1=self.pt1 + other, pt2=self.pt2 + other)
         elif isinstance(other, LineSegment):
             return LineSegment(pt1=self.pt1 + other.pt1, pt2=self.pt2 + other.pt2)
@@ -87,7 +87,7 @@ class LineSegment:
         """
         return (self.pt1 - self.pt2).length()
 
-    def scale(self, pt: Point) -> "LineSegment":
+    def scale(self, pt: Point2D) -> "LineSegment":
         """Provides the 2D segment after applying a scaling of the 2D space with
         the scaling given in each coordinate of point
 
@@ -104,8 +104,8 @@ class LineSegment:
         scale_x = pt.x
         scale_y = pt.y
         return LineSegment(
-            pt1=Point(x=self.pt1.x * scale_x, y=self.pt1.y * scale_y),
-            pt2=Point(x=self.pt2.x * scale_x, y=self.pt2.y * scale_y),
+            pt1=Point2D(x=self.pt1.x * scale_x, y=self.pt1.y * scale_y),
+            pt2=Point2D(x=self.pt2.x * scale_x, y=self.pt2.y * scale_y),
         )
 
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, thickness: int = 3):

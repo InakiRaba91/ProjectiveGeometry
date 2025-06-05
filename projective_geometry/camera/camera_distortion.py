@@ -25,7 +25,7 @@ class CameraDistortion:
         Returns:
             [k1, k2, p1, p2, k3]
         """
-        return np.array([self.tx, self.ty, self.tz, self.roll, self.tilt, self.pan])
+        return np.array([self.k1, self.k2, self.p1, self.p2, self.k3])
 
     def __eq__(self, other: Any, tol: float = 1e-6):
         """Performs the equality comparison between current object and passed one.
