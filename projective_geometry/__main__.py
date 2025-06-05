@@ -6,9 +6,10 @@ import numpy as np
 from typer import Typer
 
 from projective_geometry.camera import Camera, CameraParams, CameraPose
+from projective_geometry.camera.camera2 import Camera2
 from projective_geometry.draw import Color
 from projective_geometry.draw.image_size import ImageSize
-from projective_geometry.geometry import Ellipse, Line, Point2D
+from projective_geometry.geometry import Ellipse, Line, Point2D, Point3D
 from projective_geometry.geometry.conic import Conic
 from projective_geometry.geometry.line_segment import LineSegment
 from projective_geometry.pitch_template.basketball_template import (
@@ -17,6 +18,8 @@ from projective_geometry.pitch_template.basketball_template import (
 from projective_geometry.projection.projectors import (
     project_conics,
     project_pitch_template,
+    project_to_sensor,
+    project_to_world,
 )
 from projective_geometry.utils.distances import FOOT, INCH
 
@@ -746,6 +749,88 @@ def intrinsic_from_three_planes_demo(image_path: Path = PROJECT_LOCATION / "resu
     K_estimate = get_intrinsic_from_2d_homographies(H_planes=H_planes)
     print(f"Ground truth intrinsic matrix: \n{K}")
     print(f"Estimated intrinsic matrix: \n{K_estimate}")
+
+
+@cli_app.command()
+def camera_calibration_test(
+    image_path: Path = PROJECT_LOCATION / "results/Broadcast.png",
+):
+
+    image_points = tuple(
+        [
+            Point2D(x=1410.0393, y=293.5348),
+            Point2D(x=737.2433, y=251.7833),
+            Point2D(x=450.1709, y=329.2394),
+            Point2D(x=1186.5133, y=381.2686),
+            Point2D(x=926.6083, y=485.5929),
+            Point2D(x=410.3828, y=427.8692),
+            Point2D(x=441.6741, y=533.5641),
+            Point2D(x=533.7554, y=641.9421),
+            Point2D(x=31.9192, y=842.0333),
+        ]
+    )
+
+    world_points = tuple(
+        [
+            Point3D(x=-36.1188, y=33.8328),
+            Point3D(x=-52.578, y=33.8328),
+            Point3D(x=-52.578, y=20.1168),
+            Point3D(x=-36.1188, y=20.1168),
+            Point3D(x=-36.1188, y=7.3152),
+            Point3D(x=-47.0916, y=9.144),
+            Point3D(x=-41.6052, y=0.0),
+            Point3D(x=-36.1188, y=-7.3152),
+            Point3D(x=-36.1188, y=-20.1168),
+        ]
+    )
+
+    image = cv2.imread(image_path.as_posix())
+
+    for pt in image_points:
+        pt.draw(img=image, color=Color.RED, radius=PT_RADIUS, thickness=PT_THICKNESS)
+    cv2.imwrite((PROJECT_LOCATION / "results/BroadcastManualImagePointsTest.png").as_posix(), image)
+
+    sensor_wh = image.shape[:2][::-1]
+    camera = Camera2.from_keypoint_correspondences(world_points, image_points, sensor_wh)
+    print(f"Intrinsic matrix: \n{camera}")
+
+    image_point2 = project_to_sensor(camera, world_points)
+
+    rmse_image = np.mean(
+        [np.linalg.norm(pt1.to_array() - pt2.to_array()) for pt1, pt2 in zip(image_points, image_point2, strict=True)]
+    )
+    print(f"RMSE Image: {rmse_image} px")
+
+    for pt_i1, pt_i2 in zip(image_points, image_point2, strict=True):
+        pt_i1.draw(img=image, color=Color.RED, radius=PT_RADIUS, thickness=PT_THICKNESS)
+        pt_i2.draw(img=image, color=Color.BLUE, radius=PT_RADIUS, thickness=PT_THICKNESS)
+    cv2.imwrite((PROJECT_LOCATION / "results/BroadcastProjectedImagePointsTest.png").as_posix(), image)
+
+    world_point2 = project_to_world(camera, image_points)
+
+    rmse_world = np.mean(
+        [np.linalg.norm(pt1.to_array() - pt2.to_array()) for pt1, pt2 in zip(world_points, world_point2, strict=True)]
+    )
+    print(f"RMSE World: {rmse_world} m")
+
+    FIELD_HEIGHT = 68
+    FIELD_WIDTH = 105
+    FIELD_IMAGE_FACTOR = 10
+
+    field_image = (
+        np.ones((FIELD_HEIGHT * FIELD_IMAGE_FACTOR, FIELD_WIDTH * FIELD_IMAGE_FACTOR, 3)) * 255
+    )  # create a white field image
+    for pt_w1, pt_w2 in zip(world_points, world_point2, strict=True):
+        pt_w1 += Point3D(x=FIELD_WIDTH / 2, y=FIELD_HEIGHT / 2)
+        pt_w1 *= FIELD_IMAGE_FACTOR
+        pt_w1 = Point3D(pt_w1.x, -pt_w1.y, pt_w1.z) + Point3D(0, FIELD_HEIGHT * FIELD_IMAGE_FACTOR, 0)
+        pt_w2 += Point3D(x=FIELD_WIDTH / 2, y=FIELD_HEIGHT / 2)
+        pt_w2 *= FIELD_IMAGE_FACTOR
+        pt_w2 = Point3D(pt_w2.x, -pt_w2.y, pt_w2.z) + Point3D(0, FIELD_HEIGHT * FIELD_IMAGE_FACTOR, 0)
+        pt_w1.draw(img=field_image, color=Color.RED, radius=PT_RADIUS, thickness=PT_THICKNESS)
+        pt_w2.draw(img=field_image, color=Color.BLUE, radius=PT_RADIUS, thickness=PT_THICKNESS)
+
+    cv2.imwrite((PROJECT_LOCATION / "results/BroadcastProjectedFieldPointsTest.png").as_posix(), field_image)
 
 
 # Program entry point redirection
