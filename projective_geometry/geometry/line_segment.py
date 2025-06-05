@@ -113,9 +113,7 @@ class LineSegment:
         num_points = int(self.length() / distance) + 1
         dx = (self.pt2.x - self.pt1.x) / num_points
         dy = (self.pt2.y - self.pt1.y) / num_points
-        return [
-            Point2D(x=self.pt1.x + i * dx, y=self.pt1.y + i * dy) for i in range(num_points + 1)
-        ]
+        return [Point2D(x=self.pt1.x + i * dx, y=self.pt1.y + i * dy) for i in range(num_points + 1)]
 
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, thickness: int = 3):
         """Draws the segment within the given image in-place

@@ -17,7 +17,7 @@ class CameraPose:
         rx: rotation around x-axis
         ry: rotation around y-axis
         rz: rotation around z-axis
-    """        
+    """
 
     def __init__(self, tx: float, ty: float, tz: float, roll: float, tilt: float, pan: float):
         self.tx = tx

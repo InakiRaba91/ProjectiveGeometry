@@ -1,4 +1,5 @@
 import numpy as np
+
 from projective_geometry.camera.camera import Camera
 from projective_geometry.draw.image_size import ImageSize
 from projective_geometry.geometry.point import Point2D
@@ -23,7 +24,7 @@ def calculate_focal_length_from_homography(
     5. Fifth row: vanishing points for 45º/135º lines
 
     Note: check README for more details on the derivation of the equations.
-    
+
     Parameters
     ----------
     camera
@@ -84,6 +85,7 @@ def calculate_focal_length_from_homography(
     focal_length_xy = np.array([K[0, 0], K[1, 1]])
     return True, focal_length_xy
 
+
 def calculate_focal_length_from_homography2(
     camera: Camera,
     image_size: ImageSize,
@@ -92,6 +94,5 @@ def calculate_focal_length_from_homography2(
     w2, h2 = image_size.width / 2, image_size.height / 2
     vp1 = H[:2, 0] / H[2, 0]
     vp2 = H[:2, 1] / H[2, 1]
-    f = (-(vp1[0] - w2) * (vp2[0] - w2) - (vp1[1] - h2)*(vp2[1] - h2)) ** 0.5
+    f = (-(vp1[0] - w2) * (vp2[0] - w2) - (vp1[1] - h2) * (vp2[1] - h2)) ** 0.5
     return True, np.array([f, f])
-

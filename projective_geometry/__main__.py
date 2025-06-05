@@ -22,7 +22,9 @@ from projective_geometry.projection.projectors import (
     project_to_world,
 )
 from projective_geometry.utils.distances import FOOT, INCH
-from projective_geometry.visualization.virtual_trajectory import generate_video_virtual_trajectory_camera
+from projective_geometry.visualization.virtual_trajectory import (
+    generate_video_virtual_trajectory_camera,
+)
 from projective_geometry.visualization.visualizer import show_camera_visualisation
 
 PINHOLE_SVG = Point2D(x=497.18973, y=33.56244)
@@ -627,7 +629,7 @@ def homography_from_image_registration(
         source_image,
         matched_keypoints.source_keypoints,
         matched_keypoints.matches,
-        None,
+        np.zeros_like(target_image, dtype=np.uint8),
     )
     cv2.imwrite((PROJECT_LOCATION / "results/matches.png").as_posix(), img_matches)
 
@@ -646,17 +648,6 @@ def homography_from_image_registration(
     # add red border to warped image without changing its size
     target_and_warped_images = cv2.addWeighted(target_image, 1, warped_image, 0.5, 0)
     cv2.imwrite((PROJECT_LOCATION / "results/warped.png").as_posix(), target_and_warped_images)
-
-
-@cli_app.command()
-def focal_length_from_orthogonal_vanishing_points_demo(image: Path = PROJECT_LOCATION / "results/BasketballCourtCalibration.png"):
-    image = cv2.imread(image.as_posix())
-    width, height = image.shape[1], image.shape[0]
-    vp1 = Point2D(x=7239.60, y=875.45)
-    vp2 = Point2D(x=754.46, y=-1758.11)
-    focal_length = (-(vp1.x - width / 2) * (vp2.x - width / 2) - (vp1.y - height / 2) * (vp2.y - height / 2)) ** 0.5
-    print(f"Focal length: {focal_length}")
-    pass
 
 
 @cli_app.command()
@@ -803,7 +794,7 @@ def camera_calibration_test(
         pt.draw(img=image, color=Color.RED, radius=PT_RADIUS, thickness=PT_THICKNESS)
     cv2.imwrite((PROJECT_LOCATION / "results/BroadcastManualImagePointsTest.png").as_posix(), image)
 
-    sensor_wh = image.shape[:2][::-1]
+    sensor_wh = image.shape[1], image.shape[0]
     camera = Camera2.from_keypoint_correspondences(world_points, image_points, sensor_wh)
     print(f"Intrinsic matrix: \n{camera}")
 
@@ -865,40 +856,43 @@ def camera_retrieval_test(output: Path = PROJECT_LOCATION / "results/celtics_ret
         Point3D(x=-W2 + 28 * FOOT + 12 * INCH, y=0),
         Point3D(x=-W2 + 19 * FOOT, y=-8 * FOOT),
     ]
-    camera = Camera.from_point_correspondences(pts_source=points_template, pts_target=points_frame)
+    points_template_2d = tuple(Point2D(x=pt.x, y=pt.y) for pt in points_template)
+
+    camera = Camera.from_point_correspondences(pts_source=points_template_2d, pts_target=points_frame)
 
     # project basketball court template
     basketball_court = BasketballCourtTemplate()
     frame = cv2.imread(IMG_CELTICS_FPATH.as_posix())
-    sensor_wh = frame.shape[:2][::-1]
+    sensor_wh = frame.shape[1], frame.shape[0]
     image_size = ImageSize(width=frame.shape[1], height=frame.shape[0])
     basketball_court_img = basketball_court.draw(image_size=image_size, color=Color.WHITE)
 
-    camera = Camera2.from_keypoint_correspondences(points_template, points_frame, sensor_wh)
+    camera2 = Camera2.from_keypoint_correspondences(points_template, points_frame, sensor_wh)
 
-    keypoints = tuple(Point3D(x=pt.x, y=pt.y) for pt in basketball_court.keypoints())
-    keypoints_frame = project_to_sensor(camera, keypoints)
+    keypoints = tuple(Point3D(x=pt.x, y=pt.y) for pt in basketball_court.keypoints)
+    keypoints_frame = project_to_sensor(camera2, keypoints)
     for pt in keypoints_frame:
         pt.draw(img=frame, color=Color.GREEN, radius=PT_RADIUS, thickness=PT_THICKNESS)
 
-    points_frame2 = project_to_sensor(camera, points_template)
+    points_frame2 = project_to_sensor(camera2, points_template)
     rmses_image = []
     for pt_i1, pt_i2 in zip(points_frame, points_frame2, strict=True):
-        pt_i1.draw(img=frame, color=Color.RED, radius=2*PT_RADIUS, thickness=-1)
+        pt_i1.draw(img=frame, color=Color.RED, radius=2 * PT_RADIUS, thickness=-1)
         pt_i2.draw(img=frame, color=Color.BLUE, radius=PT_RADIUS, thickness=PT_THICKNESS)
         rmses_image.append(np.linalg.norm(pt_i1.to_array() - pt_i2.to_array()))
     rmse_image = np.mean(rmses_image)
     print(f"RMSE Image: {rmse_image} px")
 
-    points_template2 = project_to_world(camera, points_frame)
+    points_template2 = project_to_world(camera2, points_frame)
     rmses_world = []
     for pt_w1, pt_w2 in zip(points_template, points_template2, strict=True):
-        pt_w1 = Point2D(x=pt_w1.x, y=pt_w1.y)
-        pt_w2 = Point2D(x=pt_w2.x, y=pt_w2.y)
-        pt_img1 = basketball_court.pitch_template_to_pitch_image(geometric_feature=pt_w1, image_size=image_size)
-        pt_img1.draw(img=basketball_court_img, color=Color.RED, radius=2*PT_RADIUS, thickness=-1)
-        pt_img2 = basketball_court.pitch_template_to_pitch_image(geometric_feature=pt_w2, image_size=image_size)
-        pt_img2.draw(img=basketball_court_img, color=Color.BLUE, radius=PT_RADIUS, thickness=PT_THICKNESS)  # type: ignore        rmses_world.append(np.linalg.norm(pt_w1.to_array() - pt_w2.to_array()))
+        new_pt_w1 = Point2D(x=pt_w1.x, y=pt_w1.y)
+        new_pt_w2 = Point2D(x=pt_w2.x, y=pt_w2.y)
+        pt_img1 = basketball_court.pitch_template_to_pitch_image(geometric_feature=new_pt_w1, image_size=image_size)
+        pt_img1.draw(img=basketball_court_img, color=Color.RED, radius=2 * PT_RADIUS, thickness=-1)
+        pt_img2 = basketball_court.pitch_template_to_pitch_image(geometric_feature=new_pt_w2, image_size=image_size)
+        pt_img2.draw(img=basketball_court_img, color=Color.BLUE, radius=PT_RADIUS, thickness=PT_THICKNESS)  # type: ignore
+        rmses_world.append(np.linalg.norm(new_pt_w1.to_array() - new_pt_w2.to_array()))
     rmse_world = np.mean(rmses_world)
     print(f"RMSE World: {rmse_world} m")
 
@@ -908,9 +902,11 @@ def camera_retrieval_test(output: Path = PROJECT_LOCATION / "results/celtics_ret
 def visualize():
     show_camera_visualisation()
 
+
 @cli_app.command()
 def virtual_camera_trajectory():
     generate_video_virtual_trajectory_camera(video_path=PROJECT_LOCATION / "results/virtual_camera_trajectory.mp4")
+
 
 # Program entry point redirection
 if __name__ == "__main__":

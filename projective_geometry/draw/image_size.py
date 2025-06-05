@@ -4,7 +4,7 @@ from typing import Any
 
 
 class ImageSize:
-    def __init__(self, width: float, height: float):
+    def __init__(self, width: int | float, height: int | float):
         """
         Image size class initializer
 
@@ -12,18 +12,18 @@ class ImageSize:
             width: Distance image width
             height: Distance image height
         """
-        self._width = width
-        self._height = height
+        self._width = int(width)
+        self._height = int(height)
 
     def __hash__(self):
         return hash((self.width, self.height))
 
     @property
-    def width(self) -> float:
+    def width(self) -> int:
         return self._width
 
     @property
-    def height(self) -> float:
+    def height(self) -> int:
         return self._height
 
     def __eq__(self, other: Any) -> bool:

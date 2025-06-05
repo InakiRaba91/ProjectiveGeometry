@@ -1,5 +1,5 @@
-import sys
 import logging
+import sys
 
 import cv2
 import numpy as np
@@ -7,19 +7,13 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
+    QHBoxLayout,
     QLabel,
     QMainWindow,
     QSlider,
     QVBoxLayout,
-    QHBoxLayout,
     QWidget,
 )
-
-from projective_geometry.camera.camera import Camera
-from projective_geometry.camera.camera_params import CameraParams
-from projective_geometry.camera.camera_pose import CameraPose
-from projective_geometry.draw.image_size import ImageSize
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -51,7 +45,15 @@ class CameraVisualiser(QMainWindow):
         self.keys = ["f", "tx", "ty", "tz", "rx", "ry", "rz"]
         self.sliders = {key: QSlider(Qt.Orientation.Horizontal) for key in self.keys}
         self.slider_labels = {key: QLabel() for key in self.keys}
-        self.f_view, self.tx_view, self.ty_view, self.tz_view, self.rx_view, self.ry_view, self.rz_view = 480, 0, -30, 45, -130, 0, 0
+        self.f_view, self.tx_view, self.ty_view, self.tz_view, self.rx_view, self.ry_view, self.rz_view = (
+            480,
+            0,
+            -30,
+            45,
+            -130,
+            0,
+            0,
+        )
 
         self.sliders["f"].setRange(200, 1000)
         self.sliders["f"].setValue(350)
@@ -83,10 +85,10 @@ class CameraVisualiser(QMainWindow):
             self.update_slider_label(slider.value(), key)
             slider.valueChanged.connect(self.update_slider_label)
             slider.sliderReleased.connect(self.display)
-        
+
         self.set_video_dimensions(screen_height)
         self.display()
-        
+
     def set_video_dimensions(self, screen_height: int, aspect_ratio=16 / 9):
         """Calculate the desired dimensions for the video_label."""
         video_height = int(screen_height * 0.4)
@@ -135,38 +137,40 @@ class CameraVisualiser(QMainWindow):
         # create a chained homography projection that maps from BEV camera -> desired camera homography
         H_chained = H.dot(K_pitch_image_to_pitch_template)
         H_chained = H_chained[:, [0, 1, 3]]
-        frame = cv2.warpPerspective(
-            src=self.frame, M=H_chained, dsize=(self.frame_width, self.frame_height)
-        )
+        frame = cv2.warpPerspective(src=self.frame, M=H_chained, dsize=(self.frame_width, self.frame_height))
 
         # Convert frame to RGB for display
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = frame_rgb.shape
         bytes_per_line = ch * w
-        qt_image = QImage(
-            frame_rgb.data, w, h, bytes_per_line, QImage.Format.Format_RGB888
-        )
+        qt_image = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
         pixmap = QPixmap.fromImage(qt_image)
         self.label_frame_view.setPixmap(pixmap)
 
     def rotation_matrix_from_angles(self, rx, ry, rz):
-        Rx = np.array([
-            [1, 0, 0],
-            [0, np.cos(rx*np.pi/180), -np.sin(rx*np.pi/180)],
-            [0, np.sin(rx*np.pi/180), np.cos(rx*np.pi/180)]
-        ])
-        Ry = np.array([
-            [np.cos(ry*np.pi/180), 0, np.sin(ry*np.pi/180)],
-            [0, 1, 0],
-            [-np.sin(ry*np.pi/180), 0, np.cos(ry*np.pi/180)]
-        ])
-        Rz = np.array([
-            [np.cos(rz*np.pi/180), -np.sin(rz*np.pi/180), 0],
-            [np.sin(rz*np.pi/180), np.cos(rz*np.pi/180), 0],
-            [0, 0, 1]
-        ])
+        Rx = np.array(
+            [
+                [1, 0, 0],
+                [0, np.cos(rx * np.pi / 180), -np.sin(rx * np.pi / 180)],
+                [0, np.sin(rx * np.pi / 180), np.cos(rx * np.pi / 180)],
+            ]
+        )
+        Ry = np.array(
+            [
+                [np.cos(ry * np.pi / 180), 0, np.sin(ry * np.pi / 180)],
+                [0, 1, 0],
+                [-np.sin(ry * np.pi / 180), 0, np.cos(ry * np.pi / 180)],
+            ]
+        )
+        Rz = np.array(
+            [
+                [np.cos(rz * np.pi / 180), -np.sin(rz * np.pi / 180), 0],
+                [np.sin(rz * np.pi / 180), np.cos(rz * np.pi / 180), 0],
+                [0, 0, 1],
+            ]
+        )
         return Rz.dot(Ry).dot(Rx)
-    
+
     def get_visible_edges(self, points_3d_cube, faces_cube, indices_edges_cube, camera_location, ref_location):
         visible_edges = []
         for edges_face in faces_cube:
@@ -186,12 +190,12 @@ class CameraVisualiser(QMainWindow):
                     if edge_idx not in visible_edges:
                         visible_edges.append(edge_idx)
         return visible_edges
-    
+
     def draw_camera(self, H_view, T_view, frame):
         f, tx, ty, tz, rx, ry, rz = [self.sliders[key].value() for key in self.keys]
         R = self.rotation_matrix_from_angles(rx, ry, rz)
         T = np.array([[tx], [ty], [tz]])
-        E = np.concatenate((np.concatenate((R, T), axis=1), np.array([[0,0,0,1]])), axis=0)
+        E = np.concatenate((np.concatenate((R, T), axis=1), np.array([[0, 0, 0, 1]])), axis=0)
         size = 10
         z_film = 0.5 * (f - self.sliders["f"].maximum()) / (self.sliders["f"].minimum() - self.sliders["f"].maximum())
         points_3d_cube = size * np.array(
@@ -227,12 +231,12 @@ class CameraVisualiser(QMainWindow):
             (3, 7),
         ]
         idx_edges_faces_cube = [
-            (0, 1, 3, 2), # z=-1
-            (4, 5, 7, 6), # z=1
-            (3, 7, 8, 10), # y=-1
-            (1, 5, 9, 11), # y=1
-            (0, 4, 8, 9), # x=-1
-            (2, 6, 10, 11), # x=1
+            (0, 1, 3, 2),  # z=-1
+            (4, 5, 7, 6),  # z=1
+            (3, 7, 8, 10),  # y=-1
+            (1, 5, 9, 11),  # y=1
+            (0, 4, 8, 9),  # x=-1
+            (2, 6, 10, 11),  # x=1
         ]
         idx_vertices_edges_film = [
             (8, 9),
@@ -240,8 +244,8 @@ class CameraVisualiser(QMainWindow):
             (11, 10),
             (10, 8),
         ]
-        point_3d_pinhole = size * np.array([[0,0,1]])
-        
+        point_3d_pinhole = size * np.array([[0, 0, 1]])
+
         # project
         points_3d_cube = E.dot(np.concatenate([points_3d_cube, np.ones((len(points_3d_cube), 1))], axis=1).T)
         points_2d_cube = H_view.dot(points_3d_cube)
@@ -262,9 +266,17 @@ class CameraVisualiser(QMainWindow):
                 indices_visible_edges_cube.append(idx_vertices_edges_cube[idx])
             else:
                 indices_covered_edges_cube.append(idx_vertices_edges_cube[idx])
-        colors = [(0, 0, 255)] * len(indices_visible_edges_cube) + [(255, 0, 255)] * len(indices_covered_edges_cube) + [(206, 209, 0)] * len(idx_vertices_edges_film)
-        thicknesses = [3] * len(indices_visible_edges_cube) + [1] * len(indices_covered_edges_cube) + [2] * len(idx_vertices_edges_film)
-        for (i, j), color, thickness in zip(indices_visible_edges_cube + indices_covered_edges_cube + idx_vertices_edges_film, colors, thicknesses):
+        colors = (
+            [(0, 0, 255)] * len(indices_visible_edges_cube)
+            + [(255, 0, 255)] * len(indices_covered_edges_cube)
+            + [(206, 209, 0)] * len(idx_vertices_edges_film)
+        )
+        thicknesses = (
+            [3] * len(indices_visible_edges_cube) + [1] * len(indices_covered_edges_cube) + [2] * len(idx_vertices_edges_film)
+        )
+        for (i, j), color, thickness in zip(
+            indices_visible_edges_cube + indices_covered_edges_cube + idx_vertices_edges_film, colors, thicknesses
+        ):
             cv2.line(
                 frame,
                 (int(points_2d_cube[0, i]), int(points_2d_cube[1, i])),
@@ -298,20 +310,17 @@ class CameraVisualiser(QMainWindow):
         # create a chained homography projection that maps from BEV camera -> desired camera homography
         H_chained = H_view.dot(K_pitch_image_to_pitch_template)
         H_chained = H_chained[:, [0, 1, 3]]
-        frame = cv2.warpPerspective(
-            src=self.frame, M=H_chained, dsize=(self.frame_width, self.frame_height)
-        )
+        frame = cv2.warpPerspective(src=self.frame, M=H_chained, dsize=(self.frame_width, self.frame_height))
         frame = self.draw_camera(H_view=H_view, T_view=T_view, frame=frame)
 
         # Convert frame to RGB for display
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = frame_rgb.shape
         bytes_per_line = ch * w
-        qt_image = QImage(
-            frame_rgb.data, w, h, bytes_per_line, QImage.Format.Format_RGB888
-        )
+        qt_image = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
         pixmap = QPixmap.fromImage(qt_image)
         self.label_camera_view.setPixmap(pixmap)
+
 
 def show_camera_visualisation():
     """Launch the video player."""

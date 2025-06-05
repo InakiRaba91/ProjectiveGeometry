@@ -199,7 +199,7 @@ class EllipseArc:
             self.ellipse.ellipse_point_from_circle_angle(gamma=gamma)
             for gamma in np.linspace(self.start_angle, self.end_angle, num=num_points, endpoint=True)
         ]
-    
+
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, thickness: int = 3):
         """Draws the ellipse arc within the given image in-place
 

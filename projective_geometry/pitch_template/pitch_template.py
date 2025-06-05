@@ -1,5 +1,5 @@
 import random
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, TypeVar, Union, cast
 
 import numpy as np
 
@@ -8,6 +8,8 @@ from projective_geometry.draw.image_size import BASE_IMAGE_SIZE, ImageSize
 from projective_geometry.geometry import Ellipse, EllipseArc, Line, Point2D
 from projective_geometry.geometry.line_segment import LineSegment
 from projective_geometry.pitch_template.pitch_dims import PitchDims
+
+T = TypeVar("T", bound=Union[Point2D, Line, LineSegment, Ellipse, EllipseArc])
 
 
 class PitchTemplate(object):
@@ -27,9 +29,9 @@ class PitchTemplate(object):
 
     def pitch_template_to_pitch_image(
         self,
-        geometric_feature: Union[Point2D, Line, LineSegment, Ellipse, EllipseArc],
+        geometric_feature: T,
         image_size: ImageSize = BASE_IMAGE_SIZE,
-    ) -> Union[Point2D, Line, LineSegment, Ellipse, EllipseArc]:
+    ) -> T:
         """Map geometric feature (Point, Line, LineSegment, Ellipse, EllipseArc)
          in pitch template to point in pitch image
 
@@ -65,7 +67,7 @@ class PitchTemplate(object):
         # use the ratio to move the geometric feature from the image domain to the real world domain
         image_feature = real_world_feature.scale(pt=scaling_2d)  # image
 
-        return image_feature
+        return cast(T, image_feature)
 
     def pitch_image_to_pitch_template(
         self,
@@ -137,9 +139,9 @@ class PitchTemplate(object):
             geometric_feature_image.draw(img, color=color_feature, thickness=thickness)
 
         return img
-    
+
     def draw_keypoints(
-        self, 
+        self,
         image_size: ImageSize = BASE_IMAGE_SIZE,
         color: Optional[Tuple[Any, ...]] = Color.WHITE,
         radius: int = 3,
@@ -147,9 +149,7 @@ class PitchTemplate(object):
     ) -> np.ndarray:
         img = np.zeros((int(image_size.height), int(image_size.width), 3), dtype=np.uint8)
         for keypoint in self.keypoints:
-            keypoint_image = self.pitch_template_to_pitch_image(
-                geometric_feature=keypoint, image_size=image_size
-            )
+            keypoint_image = self.pitch_template_to_pitch_image(geometric_feature=keypoint, image_size=image_size)
             keypoint_image.draw(img, color=color, radius=radius, thickness=thickness)
         return img
 

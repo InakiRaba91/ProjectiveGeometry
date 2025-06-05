@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Sequence, Tuple
 
 import cv2
 import numpy as np
@@ -178,7 +178,7 @@ def _distort(normalized_camera_points: np.ndarray, distortion_coefficients: np.n
     return np.c_[x_distorted, y_distorted]
 
 
-def project_to_sensor(camera: Camera2, world_points: Tuple[Point3D, ...]) -> Tuple[Point2D, ...]:
+def project_to_sensor(camera: Camera2, world_points: Sequence[Point3D]) -> Tuple[Point2D, ...]:
     """Project points to the sensor plane of the camera.
 
     Args:
@@ -246,7 +246,7 @@ def _undistort(image_points: np.ndarray, distortion_coefficients: np.ndarray, ca
     return normalized_camera_points.squeeze(axis=1)
 
 
-def project_to_world(camera: Camera2, image_points: Tuple[Point2D, ...], z_plane: float = 0.0) -> Tuple[Point3D, ...]:
+def project_to_world(camera: Camera2, image_points: Sequence[Point2D], z_plane: float = 0.0) -> Tuple[Point3D, ...]:
     """Project image points to world points.
 
     Parameters

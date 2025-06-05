@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self, Tuple
+from typing import Self, Sequence, Tuple
 
 import numpy as np
 
@@ -29,8 +29,8 @@ class Camera2:
     @classmethod
     def from_keypoint_correspondences(
         cls,
-        world_points: Tuple[Point3D, ...],
-        image_points: Tuple[Point2D, ...],
+        world_points: Sequence[Point3D],
+        image_points: Sequence[Point2D],
         sensor_wh: Tuple[int, int],
     ) -> Self:
         """Create a Camera object from keypoint correspondences and sensor size.

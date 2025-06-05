@@ -1,6 +1,6 @@
 # Camera calibration
 
-We provide a method `calculate_focal_length_from_homography` that estimates the focal length of a camera given the homography matrix and image size. 
+We provide a method `calculate_focal_length_from_homography` that estimates the focal length of a camera given the homography matrix and image size.
 
 ## Image of the absolute conic
 
@@ -58,7 +58,7 @@ X(\lambda) = A + \lambda D
 \end{equation}
 $$
 
-where $\lambda$ is a scalar and $D = [d_x, d_y, d_z, 0]$ is the direction vector in homogeneous coordinates. 
+where $\lambda$ is a scalar and $D = [d_x, d_y, d_z, 0]$ is the direction vector in homogeneous coordinates.
 
 We can project it to the image plane using the homography matrix $H = K \cdot [R | T]$, where $K$ is the intrinsic matrix, $R$ is the rotation matrix, and $T$ is the translation vector. The projection of the point $X(\lambda)$ in the image plane is given by:
 
@@ -163,7 +163,7 @@ $$ -->
 ### Principal point at the center of the image
 
 If we pay attention to $w_3$ and $w_4$, we can see that they are related to the
-principal point $(c_x, c_y)$ of the camera. 
+principal point $(c_x, c_y)$ of the camera.
 
 $$
 \begin{equation}
@@ -201,14 +201,14 @@ H = \begin{bmatrix}
 h_0 & h_1 & h_2 \\\\
 h_3 & h_4 & h_5 \\\\
 h_6 & h_7 & h_8
-\end{bmatrix} 
+\end{bmatrix}
 \end{equation}
 $$
 
 So we can get two sets of orthogonal lines:
 
-1. Horizontal: 
-   - $d_1 = [1, 0, 0]$ 
+1. Horizontal:
+   - $d_1 = [1, 0, 0]$
    - $v_1 = [h_0, h_3, h_6]$
 2. Vertical:
    - $d_2 = [0, 1, 0]$
@@ -245,12 +245,12 @@ which reduces to:
 $$
 \begin{equation}
 \begin{split}
-0 & = h_0 h_1 w_0 \\  
+0 & = h_0 h_1 w_0 \\
 & + (h_3 h_1 + h_0 h_4) w_1 \\
-& + h_3 h_4 w_2 \\ 
-& + (h_6 h_1 + h_0 h_7) w_3 \\ 
-& + (h_6 h_4 + h_3 h_7) w_4 \\ 
-& + h_6 h_7 w_5 
+& + h_3 h_4 w_2 \\
+& + (h_6 h_1 + h_0 h_7) w_3 \\
+& + (h_6 h_4 + h_3 h_7) w_4 \\
+& + h_6 h_7 w_5
 \end{split}
 \end{equation}
 $$
@@ -263,13 +263,13 @@ $$
 
 ### Vanishing point for 45º/135º lines
 
-It would not be rare to observe that some set of parallel lines remain parallel after projection. Given our camera angles, this can happen for horizontal lines. So to make the system more robust, we can add the condition for vanishing points from perpendicular rays for 45º and 135º lines. 
+It would not be rare to observe that some set of parallel lines remain parallel after projection. Given our camera angles, this can happen for horizontal lines. So to make the system more robust, we can add the condition for vanishing points from perpendicular rays for 45º and 135º lines.
 
 1. 45º lines:
-   - $d_3 = [1, 1, 0]$ 
+   - $d_3 = [1, 1, 0]$
    - $v_3 = [h_0 + h_1, h_3 + h_4, h_6 + h_7]$
 2. 135º lines:
-   - $d_4 = [1, -1, 0]$ 
+   - $d_4 = [1, -1, 0]$
    - $v_4 = [h_0 - h_1, h_3 - h_4, h_6 - h_7]$
 
 Replacing on the condition for vanishing points from perpendicular rays, we get:
@@ -282,7 +282,7 @@ Replacing on the condition for vanishing points from perpendicular rays, we get:
 h_0 + h_1 & h_3 + h_4 & h_6 + h_7
 \end{bmatrix} \cdot \begin{bmatrix}
 w_0 & w_1 & w_3 \\\\
-w_1 & +w_2 & w_4 \\\\        
+w_1 & +w_2 & w_4 \\\\
 w_3 & w_4 & w_5
 \end{bmatrix} \cdot \begin{bmatrix}
 h_0 - h_1 \\\\ h_3 - h_4 \\\\ h_6 - h_7
@@ -313,11 +313,11 @@ This gives us the fifth row in A:
 </p>
 <!-- $$
 a_5 = [
-    h_0^2 - h_1^2,\ 
-    2 (h_0 h_3 - h_1 h_4),\ 
-    h_3^2 - h_4^2,\ 
-    2 (h_0 h_6 - h_1 h_7),\ 
-    2 (h_3 h_6 - h_4 h_7),\ 
+    h_0^2 - h_1^2,\
+    2 (h_0 h_3 - h_1 h_4),\
+    h_3^2 - h_4^2,\
+    2 (h_0 h_6 - h_1 h_7),\
+    2 (h_3 h_6 - h_4 h_7),\
     h_6^2 - h_7^2
 ]
 $$ -->

@@ -327,10 +327,9 @@ class Ellipse:
             List of points in the ellipse
         """
         return [
-            self.ellipse_point_from_circle_angle(gamma=gamma)
-            for gamma in np.linspace(0, 360, num=num_points, endpoint=False)
+            self.ellipse_point_from_circle_angle(gamma=gamma) for gamma in np.linspace(0, 360, num=num_points, endpoint=False)
         ]
-    
+
     def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, thickness: int = 3):
         """Draws the ellipse within the given image in-place
 

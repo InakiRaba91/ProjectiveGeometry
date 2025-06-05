@@ -207,7 +207,7 @@ class Point2D:
         assert len(pt_homogeneous) == 3, pt_homogeneous
         return cls(x=pt_homogeneous[0] / pt_homogeneous[2], y=pt_homogeneous[1] / pt_homogeneous[2])
 
-    def draw(self, img: np.ndarray, color: Tuple[Any, ...] = Color.RED, radius: int = 3, thickness: int = 3):
+    def draw(self, img: np.ndarray, color: Tuple[Any, ...] | None = Color.RED, radius: int = 3, thickness: int = 3):
         """Draws the point as a circle within the given image in-place
 
         Note:
@@ -224,7 +224,7 @@ class Point2D:
         cv2.circle(
             img=img,
             center=(round(self.x), round(self.y)),
-            color=color,
+            color=color or Color.RED,
             radius=radius,
             thickness=thickness,
         )
