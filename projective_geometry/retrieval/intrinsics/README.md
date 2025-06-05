@@ -84,7 +84,7 @@ $$
 where $\lambda$ disappears since the projection is defined up to scale. Notice how the vanishing point only depends on the direction of the line $d$ and not on the point $A$, proving that all parallel share the same vanishing point. This is illustrated below:
 
 <figure class="figure" style="text-align: center;">
-  <img src="vanishing_point_image.svg" alt="Vanishing point in the image" width="70%" style="display: block; margin: auto;">
+  <img src="vanishing_point_image.png" alt="Vanishing point in the image" width="70%" style="display: block; margin: auto;">
   <figcaption class="caption" style="font-weight: normal; max-width: 80%; margin: auto;">The points X<sub>i</sub> in line X are equally spaced in the 3D Euclidean space, but their projections distance in the image plane decreases as they move away from the camera center. We can trace a parallel line D to X passing through the camera center C, which would intersect with X at the infinity plane. The vanishing point v' is the projection of this intersection in the image plane, and is given by the intersection between the line $D$ and the image plane.</figcaption>
 </figure>
 
