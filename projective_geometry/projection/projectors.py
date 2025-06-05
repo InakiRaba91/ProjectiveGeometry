@@ -1,18 +1,23 @@
+import logging
 from typing import Any, Optional, Tuple
 
 import cv2
 import numpy as np
 
 from projective_geometry.camera import Camera
+from projective_geometry.camera.camera2 import Camera2
+from projective_geometry.camera.geometry import convert_intrinsics_to_calibration_matrix
 from projective_geometry.draw import Color
 from projective_geometry.draw.image_size import ImageSize
-from projective_geometry.geometry import Line, Point
+from projective_geometry.geometry import Line, Point2D, Point3D
 from projective_geometry.geometry.conic import Conic
 from projective_geometry.geometry.line_segment import LineSegment
 from projective_geometry.pitch_template.pitch_template import PitchTemplate
 
+logger = logging.getLogger(__name__)
 
-def project_points(camera: Camera, pts: Tuple[Point, ...]) -> Tuple[Point, ...]:
+
+def project_points(camera: Camera, pts: Tuple[Point2D, ...]) -> Tuple[Point2D, ...]:
     """
     Project points using given camera
 
@@ -25,7 +30,7 @@ def project_points(camera: Camera, pts: Tuple[Point, ...]) -> Tuple[Point, ...]:
     """
     pts_homogeneous = np.array([pt.to_homogeneous() for pt in pts])
     projected_pts_homogeneous = camera.H.dot(pts_homogeneous.T).T
-    return tuple([Point.from_homogeneous(pt_homogeneous=pt) for pt in projected_pts_homogeneous])
+    return tuple([Point2D.from_homogeneous(pt_homogeneous=pt) for pt in projected_pts_homogeneous])
 
 
 def project_lines(camera: Camera, lns: Tuple[Line, ...]) -> Tuple[Line, ...]:
@@ -136,3 +141,148 @@ def project_pitch_template(
         return cv2.addWeighted(frame, 1, projected_pitch_image, 1, 0)
 
     return projected_pitch_image
+
+
+_NEAR_ZERO_Z = 1e-6
+
+
+def _distort(normalized_camera_points: np.ndarray, distortion_coefficients: np.ndarray) -> np.ndarray:
+    """Apply distortion to normalized camera coordinates.
+
+    Parameters
+    ----------
+    normalized_camera_points
+        Normalized camera coordinates.
+    distortion_coefficients
+        Distortion coefficients [k1, k2, p1, p2, k3].
+
+    Returns
+    -------
+    distorted_points
+        Distorted normalized coordinates.
+    """
+    k1, k2, p1, p2, k3 = distortion_coefficients[:5]
+    x, y = normalized_camera_points[:, 0], normalized_camera_points[:, 1]
+    r2 = x**2 + y**2
+    r4 = r2**2
+    r6 = r2**3
+
+    radial = 1 + k1 * r2 + k2 * r4 + k3 * r6
+
+    x_tangential = 2 * p1 * x * y + p2 * (r2 + 2 * x**2)
+    y_tangential = p1 * (r2 + 2 * y**2) + 2 * p2 * x * y
+
+    x_distorted = x * radial + x_tangential
+    y_distorted = y * radial + y_tangential
+
+    return np.c_[x_distorted, y_distorted]
+
+
+def project_to_sensor(camera: Camera2, world_points: Tuple[Point3D, ...]) -> Tuple[Point2D, ...]:
+    """Project points to the sensor plane of the camera.
+
+    Args:
+        camera: Camera instance to project with.
+        pts: Points to project.
+
+    Returns:
+        Projected points on the sensor plane.
+    """
+    positions_xyz = camera.camera_params.camera_pose.postion_xyz
+    rotation_matrix = camera.camera_params.camera_pose.rotation_matrix
+    distortion_coefficients = camera.camera_params.camera_distorion.to_array()
+    focal_length = camera.camera_params.focal_length
+    sensor_wh = camera.sensor_wh
+    principal_point = np.array([sensor_wh[0] / 2, sensor_wh[1] / 2])
+
+    world_points_arr = np.array([pt.to_array() for pt in world_points])
+
+    relative_points = world_points_arr - positions_xyz
+    camera_points = rotation_matrix @ relative_points.T
+
+    near_zero_z = abs(camera_points[2, :]) <= _NEAR_ZERO_Z
+    if np.any(near_zero_z):
+        logger.warning(
+            f"{np.sum(near_zero_z)} world points are too close to the camera:\n"
+            # f"{','.join(world_points[near_zero_z].tolist())}"
+        )
+
+    normalized_camera_points = camera_points / camera_points[2]
+    normalized_camera_points = normalized_camera_points[:2].T
+
+    distorted_points = _distort(normalized_camera_points, distortion_coefficients)
+
+    x = distorted_points[..., 0] * (focal_length * sensor_wh[0]) + principal_point[0]
+    y = distorted_points[..., 1] * (focal_length * sensor_wh[1]) + principal_point[1]
+    image_points = np.c_[x, y]
+
+    return tuple(Point2D.from_array(pt) for pt in image_points)
+
+
+def _undistort(image_points: np.ndarray, distortion_coefficients: np.ndarray, calibration_matrix: np.ndarray) -> np.ndarray:
+    """Remove distortion from image points.
+
+    Parameters
+    ----------
+    image_points
+        Distorted image points.
+    distortion_coefficients
+        Distortion coefficients [k1, k2, p1, p2, k3].
+    calibration_matrix
+        Calibration matrix of the camera.
+
+    Returns
+    -------
+    normalized_camera_points
+        Normalized camera coordinates.
+    """
+    normalized_camera_points = cv2.undistortPoints(
+        image_points,
+        calibration_matrix,
+        distortion_coefficients,
+        R=None,
+        P=None,
+    )
+    return normalized_camera_points.squeeze(axis=1)
+
+
+def project_to_world(camera: Camera2, image_points: Tuple[Point2D, ...], z_plane: float = 0.0) -> Tuple[Point3D, ...]:
+    """Project image points to world points.
+
+    Parameters
+    ----------
+    camera
+        The camera to project with.
+    image_points
+        The image points to project.
+    z_plane
+        The Z plane to project the points to.
+
+    Returns
+    -------
+    world_points
+        The projected world points.
+    """
+    position_xyz = camera.camera_params.camera_pose.postion_xyz
+    rotation_matrix = camera.camera_params.camera_pose.rotation_matrix
+    distortion_coefficients = camera.camera_params.camera_distorion.to_array()
+    focal_length = camera.camera_params.focal_length
+    sensor_wh = camera.sensor_wh
+    calibration_matrix = convert_intrinsics_to_calibration_matrix(sensor_wh, focal_length)
+
+    image_points_arr = np.array([pt.to_array() for pt in image_points])
+
+    normalized_points = _undistort(image_points_arr, distortion_coefficients, calibration_matrix)
+    xs, ys = normalized_points[..., 0], normalized_points[..., 1]
+
+    normalized_points = np.c_[xs, ys, np.ones_like(xs)]
+
+    world_vector = rotation_matrix.T @ normalized_points.T
+    world_vector /= np.linalg.norm(world_vector)
+    scale = (z_plane - position_xyz[2]) / world_vector[2]
+
+    xs = position_xyz[0] + scale * world_vector[0]
+    ys = position_xyz[1] + scale * world_vector[1]
+
+    world_points = np.c_[xs, ys, np.full_like(xs, fill_value=z_plane)]
+    return tuple(Point3D.from_array(pt) for pt in world_points)
