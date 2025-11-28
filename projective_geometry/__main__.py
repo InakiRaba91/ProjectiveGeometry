@@ -7,7 +7,7 @@ from typer import Typer
 
 from projective_geometry.camera import Camera, CameraParams, CameraPose
 from projective_geometry.draw import Color
-from projective_geometry.draw.image_size import ImageSize
+from projective_geometry.draw.image_size import ImageSize, BASE_IMAGE_SIZE
 from projective_geometry.geometry import Ellipse, Line, Point
 from projective_geometry.geometry.conic import Conic
 from projective_geometry.geometry.line_segment import LineSegment
@@ -74,6 +74,8 @@ IMG_CELTICS_FPATH = PROJECT_LOCATION / "results/celtics.png"
 PT_RADIUS = 10
 PT_THICKNESS = 7
 BORDER_SIZE = 10
+BALL_CIRCUMFERENCE = 29.5 / 36.0  
+BALL_RADIUS = BALL_CIRCUMFERENCE / (2 * np.pi)
 
 cli_app = Typer()
 
@@ -758,6 +760,65 @@ def camera_pose_from_four_points_demo(image: Path = PROJECT_LOCATION / "results/
     pts_img_cam = np.array([[pt.x - w2, pt.y - h2, focal_length] for pt in pts_img]).T
     camera_pose = p4p(pts_world, pts_img_cam)
     print(camera_pose)
+
+
+@cli_app.command()
+def locate_ball_3d(bx: int = 3, by: int = -6, bz: int = 7):
+    tx, ty, tz = 0, -20, 25
+    t = np.array([tx, ty, tz])
+    rx, ry, rz = -142, 0, 0
+    focal_length = 1100
+    H = Camera.full_homography_from_camera_params(
+        camera_params=CameraParams(
+            camera_pose=CameraPose(tx=tx, ty=ty, tz=tz, rx=rx, ry=ry, rz=rz),
+            focal_length=focal_length,
+        ),
+        image_size=BASE_IMAGE_SIZE,
+    )
+    H_origin = Camera.full_homography_from_camera_params(
+        camera_params=CameraParams(
+            camera_pose=CameraPose(tx=0, ty=0, tz=0, rx=rx, ry=ry, rz=rz),
+            focal_length=focal_length,
+        ),
+        image_size=BASE_IMAGE_SIZE,
+    )
+
+    # Get sphere conic matrix
+    Q = np.array([
+        [1, 0, 0, -bx],
+        [0, 1, 0, -by],
+        [0, 0, 1, -bz],
+        [-bx, -by, -bz, bx**2 + by**2 + bz**2 - BALL_RADIUS**2]
+    ])
+
+    # Obtain 2D projection of the ball
+    Q_inv = np.linalg.inv(Q)
+    C_inv = H.dot(Q_inv).dot(H.T)
+    C = np.linalg.inv(C_inv)
+
+    # Back project 2D ball to cone
+    Q_co = H_origin.T.dot(C).dot(H_origin)
+    Q = Q_co[:3, :3]
+
+    # Get cone axis
+    eigvals, eigvecs = np.linalg.eig(Q)
+    for i in range(3):
+        others = [eigvals[j] for j in range(3) if j != i]
+        if np.sign(eigvals[i]) != np.sign(others[0]) and np.sign(others[0]) == np.sign(others[1]):
+            eigvec_cone_axis = eigvecs[:, i]
+            eigval_cone_axis = eigvals[i]
+            eigval_perp = others[0]
+            break
+
+    # ensure cone axis points away from origin
+    s = t.dot(eigvec_cone_axis)
+    if s < 0:
+        eigvec_cone_axis = -eigvec_cone_axis
+    sin_theta = np.sqrt(eigval_cone_axis / (eigval_cone_axis - eigval_perp))
+    d = BALL_RADIUS / sin_theta
+    est_b = t - d * eigvec_cone_axis
+    print(f"Estimated 3D ball location: ({est_b[0]}, {est_b[1]}, {est_b[2]})")
+
 
 # Program entry point redirection
 if __name__ == "__main__":
