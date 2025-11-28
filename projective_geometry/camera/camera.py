@@ -419,6 +419,20 @@ class Camera:
         E = E[:, [0, 1, 3]]
         H = K.dot(E)
         return cls(H=H)
-
+    
+    @classmethod
+    def full_homography_from_camera_params(cls, camera_params: CameraParams, image_size: ImageSize) -> np.ndarray:
+        """Build full 4x4 homography matrix from camera parameters
+        The camera can be shifted to a 3D location [tx, ty, tz], and the image can undergo a 3D rotation.
+        The extrinsic matrix E = [R | T] undoes the rotation and shifts everything to the origin of
+        coordinates before projecting the 3D world into the image.
+        """
+        Rc, t = camera_params.camera_pose.to_Rt()
+        R = Rc.T  # transpose
+        T = -Rc.T.dot(t)
+        K = cls.intrinsic_matrix_from_focal_length(focal_length=camera_params.focal_length, image_size=image_size)
+        E = np.concatenate((R, T), axis=1)
+        return K.dot(E)
+    
     def __repr__(self):
         return f"Camera(H={self.H})"
