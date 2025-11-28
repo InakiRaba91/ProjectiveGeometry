@@ -763,7 +763,7 @@ def camera_pose_from_four_points_demo(image: Path = PROJECT_LOCATION / "results/
 
 
 @cli_app.command()
-def locate_ball_3d(bx: int = 3, by: int = -6, bz: int = 7):
+def locate_ball_3d(bx: int, by: int, bz: int):
     tx, ty, tz = 0, -20, 25
     t = np.array([tx, ty, tz])
     rx, ry, rz = -142, 0, 0
