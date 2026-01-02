@@ -6,18 +6,18 @@ import numpy as np
 from projective_geometry.camera import Camera
 from projective_geometry.draw import Color
 from projective_geometry.draw.image_size import ImageSize
+from projective_geometry.entrypoints.utils import (
+    IMG_CELTICS_FPATH,
+    PROJECT_LOCATION,
+    PT_RADIUS,
+    PT_THICKNESS,
+)
 from projective_geometry.geometry import Ellipse, Line, Point
 from projective_geometry.pitch_template.basketball_template import (
     BasketballCourtTemplate,
 )
 from projective_geometry.projection.projectors import project_pitch_template
 from projective_geometry.utils.distances import FOOT, INCH
-from projective_geometry.entrypoints.utils import (
-    PROJECT_LOCATION,
-    IMG_CELTICS_FPATH,
-    PT_RADIUS,
-    PT_THICKNESS,
-)
 
 
 def homography_from_correspondences_demo(

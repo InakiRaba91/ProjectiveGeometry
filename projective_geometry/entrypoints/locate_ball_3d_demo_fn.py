@@ -2,8 +2,8 @@ import numpy as np
 
 from projective_geometry.camera import Camera, CameraParams, CameraPose
 from projective_geometry.draw.image_size import BASE_IMAGE_SIZE
-from projective_geometry.projection.projectors import project_sphere
 from projective_geometry.entrypoints.utils import BALL_RADIUS
+from projective_geometry.projection.projectors import project_sphere
 
 
 def locate_ball_3d_demo(bx: int, by: int, bz: int):
@@ -11,7 +11,7 @@ def locate_ball_3d_demo(bx: int, by: int, bz: int):
     t = np.array([tx, ty, tz])
     rx, ry, rz = -142, 0, 0
     focal_length = 1100
-    camera = Camera.from_camera_params(
+    H = Camera.full_homography_from_camera_params(
         camera_params=CameraParams(
             camera_pose=CameraPose(tx=tx, ty=ty, tz=tz, rx=rx, ry=ry, rz=rz),
             focal_length=focal_length,
@@ -28,7 +28,7 @@ def locate_ball_3d_demo(bx: int, by: int, bz: int):
 
     # Project sphere to get 2D conic
     pos = np.array([bx, by, bz])
-    C = project_sphere(pos=pos, radius=BALL_RADIUS, camera=camera)
+    C = project_sphere(pos=pos, radius=BALL_RADIUS, H=H)
 
     # Back project 2D ball to cone
     Q_co = H_origin.T.dot(C.M).dot(H_origin)

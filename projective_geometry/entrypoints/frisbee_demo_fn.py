@@ -4,15 +4,15 @@ import cv2
 import numpy as np
 
 from projective_geometry.entrypoints.utils import (
-    PINHOLE_SVG,
-    UNIT,
-    FRISBEE_DISTANCE_TO_PINHOLE,
-    RADIUS_FRISBEE,
     BACKGROUND_COLOR,
-    PROJECT_LOCATION,
+    FRISBEE_DISTANCE_TO_PINHOLE,
     IMG_TEMPLATE_FPATH,
-    label_conic_type,
+    PINHOLE_SVG,
+    PROJECT_LOCATION,
+    RADIUS_FRISBEE,
+    UNIT,
     generate_frame,
+    label_conic_type,
 )
 
 

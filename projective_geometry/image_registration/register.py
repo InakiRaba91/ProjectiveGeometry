@@ -3,24 +3,25 @@
 # prohibited. Proprietary and confidential
 
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple
+from typing import Optional, Tuple
 
 import cv2
 import numpy as np
-
 
 MAX_FEATURES_ORB = 500
 MATCHER_TYPE: int = cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING
 
 
 @dataclass
-class MatchedKeypoints():
+class MatchedKeypoints:
     """Class to store matched keypoints and descriptors for target and source images"""
+
     target_keypoints: Tuple[cv2.KeyPoint, ...]
     source_keypoints: Tuple[cv2.KeyPoint, ...]
     matches: Tuple[cv2.DMatch, ...]
 
-class ImageRegistrator():
+
+class ImageRegistrator:
     def __init__(self, max_features_detector: int = MAX_FEATURES_ORB, matcher_type: int = MATCHER_TYPE):
         self._orb = cv2.ORB_create(max_features_detector)  # type: ignore
         self._matcher = cv2.DescriptorMatcher_create(matcher_type)  # type: ignore
@@ -54,7 +55,9 @@ class ImageRegistrator():
         matched_keypoints = self._filter_top_matches(matched_keypoints=matched_keypoints)
 
         # Raise an error if it doesn't get at least 4 point
-        assert len(matched_keypoints.matches) >= 4, f"Only {len(matched_keypoints.matches)} keypoints have been detected. A minimum of 4 is required for the algorithm to succeed"
+        assert (
+            len(matched_keypoints.matches) >= 4
+        ), f"Only {len(matched_keypoints.matches)} keypoints have been detected. A minimum of 4 is required for the algorithm to succeed"
 
         # compute homography
         homography = self._homography_from_matched_keypoints(matched_keypoints=matched_keypoints)
@@ -85,7 +88,7 @@ class ImageRegistrator():
 
         # use ORB to detect keypoints and extract (binary) local invariant features
         return self._orb.detect(gray_image, mask)
-    
+
     def _describe_keypoints(self, image: np.ndarray, keypoints: Tuple[cv2.KeyPoint, ...]) -> np.ndarray:
         """
         Extracts feature descriptors of given keypoints from image
@@ -104,7 +107,7 @@ class ImageRegistrator():
         # use ORB to detect keypoints and extract (binary) local invariant features
         _, descriptors = self._orb.compute(gray_image, keypoints)
         return descriptors
-    
+
     def _match_keypoints(
         self,
         target_image: np.ndarray,
@@ -169,7 +172,7 @@ class ImageRegistrator():
             target_keypoints=matched_keypoints.target_keypoints,
             source_keypoints=matched_keypoints.source_keypoints,
         )
-    
+
     def _homography_from_matched_keypoints(self, matched_keypoints: MatchedKeypoints) -> np.ndarray:
         """
         Compute homography matrix to map points from source image to target image

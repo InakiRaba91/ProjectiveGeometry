@@ -139,7 +139,7 @@ def project_pitch_template(
 
 
 def project_sphere(pos: np.ndarray, radius: float, H: np.ndarray) -> Conic:
-    """ Project a sphere in 3D space to an ellipse in the image plane using the camera model.
+    """Project a sphere in 3D space to an ellipse in the image plane using the camera model.
 
     Args:
         pos (np.ndarray): 3D position of the sphere center (x, y, z).
@@ -151,12 +151,7 @@ def project_sphere(pos: np.ndarray, radius: float, H: np.ndarray) -> Conic:
     """
     r = radius
     x, y, z = pos
-    Q = np.array([
-        [1, 0, 0, -x],
-        [0, 1, 0, -y],
-        [0, 0, 1, -z],
-        [-x, -y, -z, x**2 + y**2 + z**2 - r**2]
-    ])
+    Q = np.array([[1, 0, 0, -x], [0, 1, 0, -y], [0, 0, 1, -z], [-x, -y, -z, x**2 + y**2 + z**2 - r**2]])
 
     # obtain inverse
     Q_inv = np.linalg.inv(Q)

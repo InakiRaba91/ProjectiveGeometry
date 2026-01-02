@@ -42,7 +42,7 @@ class CameraPose:
         Rc = Rotation.from_euler("xyz", rot_angles, degrees=True).as_matrix()
         t = np.array([[self.tx], [self.ty], [self.tz]])
         return Rc, t
-    
+
     @classmethod
     def from_Rt(cls, R: np.ndarray, t: np.ndarray, tol: float = 1e-6) -> CameraPose:
         """Creates a CameraPose object from rotation matrix and translation vector

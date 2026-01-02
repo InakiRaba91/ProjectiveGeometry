@@ -12,7 +12,6 @@ from projective_geometry.geometry.conic import Conic
 from projective_geometry.geometry.line_segment import LineSegment
 from projective_geometry.projection.projectors import project_conics
 
-
 PINHOLE_SVG = Point(x=497.18973, y=33.56244)
 IMG_SVG_SIZE = ImageSize(width=993.77657, height=287.99746)
 Y_GROUND_SVG = 90.30712
@@ -66,7 +65,7 @@ IMG_CELTICS_FPATH = PROJECT_LOCATION / "results/celtics.png"
 PT_RADIUS = 10
 PT_THICKNESS = 7
 BORDER_SIZE = 10
-BALL_CIRCUMFERENCE = 29.5 / 36.0  
+BALL_CIRCUMFERENCE = 29.5 / 36.0
 BALL_RADIUS = BALL_CIRCUMFERENCE / (2 * np.pi)
 
 
@@ -88,7 +87,7 @@ def project_3d_points(H: np.ndarray, pts: np.ndarray) -> np.ndarray:
 def get_2d_homography_between_planes(H: np.ndarray, pts_world: list[np.ndarray]) -> np.ndarray:
     """
     Get 2D homography between two planes
-    
+
     Args:
         H: original Homography matrix mapping world to image
         pts_world: List of 3D points in world plane
@@ -107,11 +106,11 @@ def get_2d_homography_between_planes(H: np.ndarray, pts_world: list[np.ndarray])
     v2 = v2 - np.dot(v2.T, v1) * v1
     v2 = v2 / np.linalg.norm(v2)
     M = np.concatenate([v1, v2], axis=1)
-    
+
     # find the homography between the two planes
     H_aux = np.concatenate((np.concatenate([M, p1], axis=1), np.array([[0, 0, 1]])), axis=0)
     return H.dot(H_aux)
-    
+
 
 def get_intrinsic_from_2d_homographies(H_planes: list[np.ndarray]) -> np.ndarray:
     """
@@ -127,17 +126,17 @@ def get_intrinsic_from_2d_homographies(H_planes: list[np.ndarray]) -> np.ndarray
     for i, Hi in enumerate(H_planes):
         u = Hi[:, 0]
         v = Hi[:, 1]
-        A[2*i, :] = np.array([u[0]*v[0] + u[1]*v[1], u[2]*v[0] + u[0]*v[2], u[2]*v[1] + u[1]*v[2], u[2]*v[2]])
-        a1 = np.array([u[0]**2 + u[1]**2, 2*u[0]*u[2], 2*u[1]*u[2], u[2]**2])
-        a2 = np.array([v[0]**2 + v[1]**2, 2*v[0]*v[2], 2*v[1]*v[2], v[2]**2])
-        A[2*i+1, :] = a1 - a2
+        A[2 * i, :] = np.array([u[0] * v[0] + u[1] * v[1], u[2] * v[0] + u[0] * v[2], u[2] * v[1] + u[1] * v[2], u[2] * v[2]])
+        a1 = np.array([u[0] ** 2 + u[1] ** 2, 2 * u[0] * u[2], 2 * u[1] * u[2], u[2] ** 2])
+        a2 = np.array([v[0] ** 2 + v[1] ** 2, 2 * v[0] * v[2], 2 * v[1] * v[2], v[2] ** 2])
+        A[2 * i + 1, :] = a1 - a2
     # # Solve system A*w = 0
     U, S, Vt = np.linalg.svd(A)
     w = Vt[-1, :] * np.sign(Vt[-1, 0])  # to ensure the first element is positive, since it's f**2
     omega = np.array([[w[0], 0, w[1]], [0, w[0], w[2]], [w[1], w[2], w[3]]])
-    f_estimate = 1 / (omega[0,0] ** 0.5)
-    px_estimate = - omega[0, 2] / omega[0, 0]
-    py_estimate = - omega[1, 2] / omega[1, 1]
+    f_estimate = 1 / (omega[0, 0] ** 0.5)
+    px_estimate = -omega[0, 2] / omega[0, 0]
+    py_estimate = -omega[1, 2] / omega[1, 1]
     return np.array([[f_estimate, 0, px_estimate], [0, f_estimate, py_estimate], [0, 0, 1]])
 
 

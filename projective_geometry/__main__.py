@@ -11,4 +11,3 @@ register_entrypoints(entrypoints, cli_app.command())
 # Program entry point redirection
 if __name__ == "__main__":
     cli_app()
-

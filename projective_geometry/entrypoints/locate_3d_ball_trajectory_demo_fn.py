@@ -1,15 +1,20 @@
-import cv2
 import numpy as np
 
 from projective_geometry.camera import Camera, CameraParams, CameraPose
 from projective_geometry.draw.image_size import BASE_IMAGE_SIZE
 from projective_geometry.entrypoints.utils import PROJECT_LOCATION
-from projective_geometry.physics_engine.state import pack_state
-from projective_geometry.physics_engine.trajectory import compute_trajectory, project_ball_trajectory
-from projective_geometry.physics_engine.utils import corrupt_ellipse, draw_trajectory_comparison
+from projective_geometry.physics_engine.config import PhysicsConfig
 from projective_geometry.physics_engine.cost_functions import get_cost_config
 from projective_geometry.physics_engine.optimization import estimate_trajectory
-from projective_geometry.physics_engine.config import PhysicsConfig
+from projective_geometry.physics_engine.state import pack_state
+from projective_geometry.physics_engine.trajectory import (
+    compute_trajectory,
+    project_ball_trajectory,
+)
+from projective_geometry.physics_engine.utils import (
+    corrupt_ellipse,
+    draw_trajectory_comparison,
+)
 
 
 def locate_3d_ball_trajectory_demo(
@@ -32,7 +37,7 @@ def locate_3d_ball_trajectory_demo(
 ):
     """
     Run trajectory optimization with noisy observations.
-    
+
     Args:
         pos0_x, pos0_y, pos0_z: Initial position components
         vel0_x, vel0_y, vel0_z: Initial velocity components
@@ -49,7 +54,7 @@ def locate_3d_ball_trajectory_demo(
     initial_pos = np.array([pos0_x, pos0_y, pos0_z])
     initial_vel = np.array([vel0_x, vel0_y, vel0_z])
     initial_ang_vel = np.array([ang0_x, ang0_y, ang0_z])
-    
+
     # Create cameras
     # 1.Broadcast camera
     f, tx, ty, tz, rx, ry, rz = 265, 0, -28, 33, -157, 0, 0
@@ -69,21 +74,19 @@ def locate_3d_ball_trajectory_demo(
         ),
         image_size=BASE_IMAGE_SIZE,
     )
-    
+
     # Generate ground truth trajectory
     s = pack_state(initial_pos, initial_vel, initial_ang_vel)
     num_t = int((t_end - t_start) / delta_t + 1)
     ts = np.arange(0, num_t) * (t_end - t_start) / (num_t - 1)
-    
+
     sim_config = PhysicsConfig()
     gt_trajectory_3d_positions = compute_trajectory(s, ts, sim_config)
-    gt_trajectory_2d_ellipses = project_ball_trajectory(
-        gt_trajectory_3d_positions, H, sim_config.ball_radius
-    )
-    
+    gt_trajectory_2d_ellipses = project_ball_trajectory(gt_trajectory_3d_positions, H, sim_config.ball_radius)
+
     # Get cost configuration
     cost_config = get_cost_config(cost_type)
-    
+
     # Add noise to observations
     stds = np.ones(5) * std
     random_state = np.random.RandomState(seed=42)
@@ -93,26 +96,29 @@ def locate_3d_ball_trajectory_demo(
         noisy_conic = corrupt_ellipse(conic=conic, stds=stds, random_state=random_state)
         noisy_trajectory_ellipse_observations[key] = noisy_conic
         if random_state.rand() > prob_miss:
-            observation = cost_config['observation_extractor'](noisy_conic)
+            observation = cost_config["observation_extractor"](noisy_conic)
             noisy_trajectory_observations[key] = observation
         else:
             noisy_trajectory_observations[key] = None
+
     # Define cost function for optimization
     def cost_function(s_opt):
-        return cost_config['trajectory_cost_fn'](
-            s_opt, ts, noisy_trajectory_observations, H, cost_config['cost_fn'], sim_config
+        return cost_config["trajectory_cost_fn"](
+            s_opt, ts, noisy_trajectory_observations, H, cost_config["cost_fn"], sim_config
         )
-    
+
     # Run optimization
-    s0 = np.concatenate([
-        s[:2] + random_state.uniform(-5, 5, size=s[:2].shape),
-        s[2:3] + random_state.uniform(0, 5, size=s[2:3].shape),
-        s[3:6] + random_state.uniform(-10, 10, size=s[3:6].shape),
-        s[6:9] + random_state.uniform(-1, 1, size=s[6:9].shape),
-    ])
+    s0 = np.concatenate(
+        [
+            s[:2] + random_state.uniform(-5, 5, size=s[:2].shape),
+            s[2:3] + random_state.uniform(0, 5, size=s[2:3].shape),
+            s[3:6] + random_state.uniform(-10, 10, size=s[3:6].shape),
+            s[6:9] + random_state.uniform(-1, 1, size=s[6:9].shape),
+        ]
+    )
     result = estimate_trajectory(s0, cost_function, minimization_type)
     est_trajectory_3d_positions = compute_trajectory(result, ts, sim_config)
-    
+
     print("Optimized state:")
     print(result)
 
@@ -125,7 +131,8 @@ def locate_3d_ball_trajectory_demo(
         H=H,
         H2=H2,
         template_image_path=template_image_path,
-        output_prefix="locate_3d_ball_trajectory"
+        output_prefix="locate_3d_ball_trajectory",
     )
+
 
 locate_3d_ball_trajectory_demo()
