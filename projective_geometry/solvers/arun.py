@@ -1,6 +1,6 @@
-## Code grabbed from: https://github.com/jingnanshi/aruns-method
+# Code grabbed from: https://github.com/jingnanshi/aruns-method
 
-from typing import Tuple
+
 import numpy as np
 
 from projective_geometry.camera.camera_pose import CameraPose
@@ -21,8 +21,8 @@ def arun_camera_pose(pts_world: np.ndarray, pts_cam: np.ndarray) -> CameraPose:
     assert pts_cam.shape[1] == N
 
     # calculate centroids
-    world_centroid = np.reshape(1/N * (np.sum(pts_world, axis=1)), (3,1))
-    cam_centroid = np.reshape(1/N * (np.sum(pts_cam, axis=1)), (3,1))
+    world_centroid = np.reshape(1 / N * (np.sum(pts_world, axis=1)), (3, 1))
+    cam_centroid = np.reshape(1 / N * (np.sum(pts_cam, axis=1)), (3, 1))
 
     # calculate the vectors from centroids
     q_world = pts_world - world_centroid

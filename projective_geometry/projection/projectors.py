@@ -136,3 +136,24 @@ def project_pitch_template(
         return cv2.addWeighted(frame, 1, projected_pitch_image, 1, 0)
 
     return projected_pitch_image
+
+
+def project_sphere(pos: np.ndarray, radius: float, H: np.ndarray) -> Conic:
+    """Project a sphere in 3D space to an ellipse in the image plane using the camera model.
+
+    Args:
+        pos (np.ndarray): 3D position of the sphere center (x, y, z).
+        radius (float): Radius of the sphere.
+        camera (Camera): Camera object with homography matrix.
+
+    Returns:
+        Conic: Projected ellipse as a Conic object.
+    """
+    r = radius
+    x, y, z = pos
+    Q = np.array([[1, 0, 0, -x], [0, 1, 0, -y], [0, 0, 1, -z], [-x, -y, -z, x**2 + y**2 + z**2 - r**2]])
+
+    # obtain inverse
+    Q_inv = np.linalg.inv(Q)
+    C_inv = H.dot(Q_inv).dot(H.T)
+    return Conic(M=np.linalg.inv(C_inv))

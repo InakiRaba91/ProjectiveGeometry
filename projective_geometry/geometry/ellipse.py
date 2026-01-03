@@ -61,7 +61,7 @@ class Ellipse:
         return ellipse_matrix and check_symmetric_and_non_degenerate(mat=M, tol=tol, ndim=3)
 
     @classmethod
-    def from_matrix(cls, M: np.ndarray, tol: float = 1e-6) -> "Ellipse":
+    def from_matrix(cls, M: np.ndarray, tol: float = 1e-6, check_validity: bool = True) -> "Ellipse":
         """Computes center, axes length and angle w.r.t. x-axis from matrix representation
         https://en.wikipedia.org/wiki/Ellipse#General_ellipse
 
@@ -76,7 +76,7 @@ class Ellipse:
 
         Returns: Ellipse corresponding to the matrix representation
         """
-        if not cls.is_valid_matrix_representation(M=M):
+        if check_validity and not cls.is_valid_matrix_representation(M=M):
             raise InvalidConicMatrixEllipseException("Matrix does not represent an ellipse")
         # We follow the naming in https://en.wikipedia.org/wiki/Ellipse#General_ellipse
         A = M[0, 0]
