@@ -134,5 +134,3 @@ def locate_3d_ball_trajectory_demo(
         output_prefix="locate_3d_ball_trajectory",
     )
 
-
-locate_3d_ball_trajectory_demo()
